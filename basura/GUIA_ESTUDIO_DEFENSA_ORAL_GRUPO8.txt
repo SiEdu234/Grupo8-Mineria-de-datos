@@ -1,0 +1,481 @@
+====================================================================================================
+GUÍA MAESTRA DE ESTUDIO Y DEFENSA ORAL CON CÓDIGO EN MANO
+CASO DE ESTUDIO: ASSISTments - EDM Cup 2023 (Paper: Yaramala et al., EDM 2024)
+MODELO: Random Forest para Predicción de Desempeño Estudiantil
+GRUPO 8 - MINERÍA DE DATOS
+====================================================================================================
+
+Estimado Grupo 8:
+Esta guía está diseñada específicamente para que, con la laptop abierta frente a la profesora, 
+sepan exactamente qué pantalla abrir, qué celda señalar, qué línea de código leer y cómo 
+responder con máxima precisión técnica a cada pregunta, sin titubeos ni palabreríos.
+
+----------------------------------------------------------------------------------------------------
+ÍNDICE RÁPIDO DE NAVEGACIÓN
+----------------------------------------------------------------------------------------------------
+1. FICHA TÉCNICA DEL CASO DE ESTUDIO REAL (Desmintiendo inventos de IA)
+2. PREGUNTA 1: OBJETIVOS DE MINERÍA DE DATOS Y CRITERIOS DE ÉXITO (Punto 1.1 del informe)
+3. PREGUNTA 2: VARIABLE DEPENDIENTE (Y) Y REGLAS DE ETIQUETADO (Respuesta completa y rigurosa)
+4. PREGUNTA 3: UBICACIÓN DEL ETIQUETADO EN LA METODOLOGÍA (CRISP-DM / CRISP-ML(Q))
+5. PREGUNTA 4: VARIABLES INDEPENDIENTES (X) Y PREVENCIÓN DE FUGA DE DATOS
+6. PREGUNTA 5: DATA EN CRUDO VS. DATA PREPROCESADA (Cómo mostrarla en Excel en columnas)
+7. PREGUNTA 6: MODELADO — ENTRADA, PROCESO Y SALIDA EN EL CÓDIGO
+8. PREGUNTA 7: PARÁMETROS VS. HIPERPARÁMETROS (Preguntas trampa: ¿Qué pasa si cambio tal valor?)
+9. PREGUNTA 8: EVALUACIÓN — FÓRMULAS, MATRIZ DE CONFUSIÓN Y GRÁFICOS EXPLICADOS
+10. PREGUNTA 9: ETAPA PREDICTIVA / PROTOTIPO DE INFERENCIA
+11. GUÍA RÁPIDA DE "SEÑALAR CON EL DEDO" EN LOS NOTEBOOKS DURANTE EL EXAMEN
+12. CHECKLIST ESTRICTO DE ENTREGA (ZIP, Word, Links en Carátula)
+
+====================================================================================================
+1. FICHA TÉCNICA DEL CASO DE ESTUDIO REAL (DESMINTIENDO INVENTOS DE IA)
+====================================================================================================
+
+* Título oficial del Paper:
+  "Navigating the Data-Rich Landscape of Online Learning: Insights and Predictions from ASSISTments"
+* Autores del Paper:
+  Aswani Yaramala, Soheila Farokhi, Hamid Karimi (Data Science and Applications Lab, Utah State University).
+* Conferencia y Publicación:
+  17th International Conference on Educational Data Mining (EDM 2024), Atlanta, Georgia, USA.
+  DOI: https://doi.org/10.5281/zenodo.12729826
+* Repositorio oficial del paper:
+  https://github.com/DSAatUSU/EDMCup2023
+* Origen real del conjunto de datos:
+  El benchmark internacional EDM Cup 2023 (Kaggle / OSF), creado por Ethan Prihar y Neil T. Heffernan III
+  (creador de la plataforma ASSISTments, Worcester Polytechnic Institute).
+
+>>> ¡ALERTA CONTRA ALUCINACIONES DE LA IA! <<<
+- ¿Existió "Repositorio 1 y Repositorio 2 que luego se unificaron"?
+  RESPUESTA: ¡NO! Jamás existieron repositorios separados. Es una ÚNICA base de datos relacional oficial 
+  de la competencia EDM Cup 2023 compuesta por 7 tablas normalizadas en formato CSV.
+- ¿Se predice sepsis, signos vitales o laboratorios clínicos?
+  RESPUESTA: ¡NO! La profesora mencionó sepsis porque fue un ejemplo de otro grupo o un ejemplo genérico 
+  que ella usó. En nuestro caso de estudio estamos en MINERÍA DE DATOS EDUCATIVA (Educational Data Mining - EDM) 
+  sobre la plataforma de aprendizaje de matemáticas ASSISTments.
+
+====================================================================================================
+2. PREGUNTA 1: OBJETIVOS DE MINERÍA DE DATOS Y CRITERIOS DE ÉXITO (PUNTO 1.1)
+====================================================================================================
+
+¿Qué debe responder cuando la profesora pregunte: "Vayan al punto 1.1 y explíquenme el criterio de éxito"?
+
+A. CONTEXTO DEL NEGOCIO / EDUCATIVO:
+   ASSISTments es un sistema de tutoría inteligente en línea (ITS) para matemáticas de educación básica y media.
+   Los estudiantes resuelven dos tipos de actividades:
+   1. Tareas de práctica durante la unidad ("in-unit assignments"), donde tienen retroalimentación formativa
+      (pistas, videos, explicaciones).
+   2. Evaluaciones de fin de unidad ("end-of-unit assignments / unit tests"), que son pruebas sumativas.
+   PROBLEMA: Si un estudiante reprueba la prueba de fin de unidad, el docente se entera cuando ya es tarde.
+
+B. OBJETIVO DE MINERÍA DE DATOS (DATA MINING OBJECTIVE):
+   Entrenar un modelo de clasificación supervisado (Random Forest) para predecir si un estudiante acertará
+   o fallará un problema específico de fin de unidad, basándose exclusivamente en sus patrones de 
+   comportamiento previo en las tareas de práctica (solicitud de pistas, respuestas erróneas, secuencias 
+   curriculares y semántica del problema).
+
+C. CRITERIO DE ÉXITO TÉCNICO (MÉTRICAS DE MINERÍA):
+   1. ROC-AUC >= 0.75 y Exactitud (Accuracy) >= 70% en el conjunto de evaluación no visto, superando 
+      ampliamente la clasificación aleatoria (AUC = 0.50).
+   2. Recall de la clase 0 (fallos / estudiantes no exitosos) >= 50%. En problemas educativos de alerta temprana,
+      el criterio de éxito no es solo el Accuracy global, sino la capacidad de detectar a los estudiantes 
+      que van a fallar (en nuestro modelo se alcanzó 55.70% de recall en la clase 0).
+
+D. CRITERIO DE ÉXITO DEL NEGOCIO / EDUCATIVO:
+   Generar alertas tempranas automáticas para que el docente pueda intervenir pedagógicamente antes de la 
+   evaluación sumativa, identificando qué habilidades de los estándares Common Core (CCSS) necesitan refuerzo.
+
+====================================================================================================
+3. PREGUNTA 2: VARIABLE DEPENDIENTE (Y) Y REGLAS DE ETIQUETADO
+====================================================================================================
+Esta fue la pregunta donde la profesora les dijo: "Contestaron que si el alumno no recibía ayuda era 1 y en
+cualquier otra situación era 0, y dijo que no le satisface y que buscaran más".
+
+Aquí está la respuesta técnica completa, exacta e irrefutable:
+
+A. NOMBRE Y VALORES TÉCNICOS:
+   * Nombre de la variable en el dataset: `score`
+   * Tipo de variable: Variable dependiente / objetivo, binaria discreta, codificada como:
+     - Valor 0: Resultado no exitoso (Fallo / No dominio).
+     - Valor 1: Resultado exitoso (Acierto / Dominio demostrado).
+   * Unidad de análisis: La tupla (interacción) ESTUDIANTE - PROBLEMA DE FIN DE UNIDAD.
+     No es la nota final del alumno, ni el promedio del curso; es el resultado específico ante un ítem de evaluación.
+
+B. REGLAS EXACTAS DE ETIQUETADO DEL CASO DE ESTUDIO (Paper Apéndice A.1, Pág. 8):
+   En el artículo original (Yaramala et al., 2024, Sección A.1, Pág. 8, Columna 2), los autores declaran:
+   "Score of 1 denotes completion of an open-ended response problem or correct first-attempt response
+   without tutoring, while 0 signifies otherwise."
+
+   CRITERIO PARA SCORE = 1 (Éxito):
+   1. En problemas cerrados/estándar: El estudiante responde correctamente en su PRIMER INTENTO 
+      (first-attempt correct) Y SIN SOLICITAR NINGUNA AYUDA NI TUTORÍA del sistema (0 hints, 0 explicaciones,
+      0 respuestas solicitadas).
+   2. En problemas de respuesta abierta (open-ended response): El estudiante completa formalmente la actividad
+      entregando la respuesta requerida.
+
+   CRITERIO PARA SCORE = 0 (No exitoso):
+   1. El estudiante da una respuesta incorrecta en su primer intento (action_wrong_response).
+   2. O el estudiante solicita ayuda antes de responder correctamente (solicitó pista/hint, video explicativo,
+      o la respuesta final "bottom-out hint / answer requested").
+   3. O el estudiante abandona el problema sin finalizarlo (not finished).
+
+C. ¿QUIÉN ETIQUETÓ? ¿REGLAS DE CLASIFICACIÓN HUMANA VS. SISTEMA?:
+   * ¡MUY IMPORTANTE!: El equipo de estudiantes NO inventó ni generó nuevas etiquetas.
+   * En este caso de estudio, el etiquetado NO fue realizado por anotadores humanos manuales o subjetivos 
+     (a diferencia de casos clínicos o análisis de sentimientos).
+   * Es un ETIQUETADO OBJETIVO Y AUTOMATIZADO generado por el motor de telemetría y reglas de negocio del LMS
+     (Intelligent Tutoring System de ASSISTments).
+   * La única regla humana previa es el diseño pedagógico del profesor que cargó el ejercicio en la plataforma 
+     y definió cuál era la respuesta matemáticamente correcta. Cuando el alumno interactúa en la web, el servidor 
+     registra los eventos de clickstream y aplica de forma determinista la regla:
+     "¿Primer intento correcto sin pedir pista? -> score = 1; En cualquier otro caso -> score = 0".
+
+D. ¿DÓNDE ESTÁ ESTO EN LAS TABLAS CRUDAS Y EN EL CÓDIGO?:
+   1. En los archivos crudos originales:
+      Viene directamente en `training_unit_test_scores.csv` y `evaluation_unit_test_scores.csv` 
+      (y respaldado en `unit_test_scores.csv`).
+   2. En el cuaderno de preparación (ASSISTments_01_Preparar_CSV.ipynb):
+      - Celda 4, líneas 23-33: Función `read_scores()` lee la columna `score` y valida que no falten valores.
+      - Celda 6, líneas 33-68: Une train y evaluation, cruzando con `unit_test_scores.csv` para garantizar 
+        las etiquetas verdaderas del conjunto de evaluación.
+      - Celda 6, línea 180: `dataset['score'] = pd.to_numeric(dataset['score'], errors='coerce').astype('float32')`.
+   3. En el cuaderno de modelado (ASSISTments_RF_Colab_ES.ipynb):
+      - Celda 2: Muestra el conteo de la etiqueta real con `df['score'].value_counts()`.
+      - Celda 4, líneas 14-17: 
+        `y = pd.to_numeric(df['score'], errors='coerce')`
+        `labeled = y.notna() & y.isin([0, 1])`
+        `y = y.loc[labeled].astype('int8').reset_index(drop=True)`
+
+====================================================================================================
+4. PREGUNTA 3: ¿DÓNDE DEBE UBICARSE EL ETIQUETADO EN LA METODOLOGÍA?
+====================================================================================================
+La profesora preguntó: "¿Dónde debe estar la etiqueta? ¿Dónde debe estar todo lo etiquetado?".
+
+RESPUESTA METODOLÓGICA TÉCNICA (CRISP-DM / CRISP-ML(Q)):
+El tratamiento del etiquetado se distribuye en fases bien definidas:
+1. En la fase de COMPRENSIÓN DEL NEGOCIO (Business Understanding):
+   Se define el significado operativo del éxito o fracaso pedagógico (score=1 vs score=0) y la regla de negocio.
+2. En la fase de COMPRENSIÓN DE LOS DATOS (Data Understanding):
+   Se audita la columna de etiqueta en las tablas fuente (`training_unit_test_scores.csv`), verificando 
+   valores perdidos, tipos de datos y distribución de clases (para detectar el desbalance: ~59% de 1s y ~41% de 0s).
+3. En la fase de PREPARACIÓN DE DATOS (Data Preparation):
+   Se asegura la integridad de la etiqueta y se aplica la regla de ORO: aislar la columna `score` de los 
+   predictores para que NUNCA forme parte de la matriz de entrada $X$ (prevención estricta de Data Leakage).
+
+====================================================================================================
+5. PREGUNTA 4: VARIABLES INDEPENDIENTES (X) Y PREVENCIÓN DE FUGA DE DATOS
+====================================================================================================
+
+A. ¿CUÁLES SON LAS VARIABLES INDEPENDIENTES (X)?:
+   Son exactamente 722 variables predictoras numéricas (float32). Se agrupan en 4 familias:
+
+   1. Variables de Comportamiento y Acción en Prácticas (Action Log Features - 19 variables):
+      - Conteos de acciones: `action_wrong_response`, `action_correct_response`, `action_hint_requested`, 
+        `action_answer_requested`, `action_continue_selected`, `action_problem_started`, etc.
+      - Disponibilidad de tutoría: `available_core_tutoring_hint`, `available_core_tutoring_answer`,
+        `available_core_tutoring_no_tutoring`, `available_core_tutoring_other`.
+      - Persistencia: `notfinish_percent` (porcentaje de tareas de práctica que el estudiante dejó sin terminar).
+      - Modas de configuración: `max_attempts`, `score_viewable`, `continuous_score_viewable`.
+
+   2. Variables de Estructura Curricular (Sequence Details - One-Hot Encoding):
+      - Jerarquía de carpetas del currículo oficial de matemáticas: niveles 1 a 4 
+        (`sequence_folder_path_level_1`, `2`, `3`, `4`). Representan grado escolar, módulo y lección.
+
+   3. Variables del Problema y Estándares CCSS (Problem Details):
+      - Tipo de problema: `problem_type` codificado en variables binarias (dummies).
+      - Habilidad matemática del estándar Common Core: fragmentada en sus 4 niveles de código CCSS 
+        (ejemplo: 8.EE, HSA.REI).
+      - `multipart_id_frequency`: frecuencia con la que un problema pertenece a una serie de pasos múltiples.
+
+   4. Representación Semántica del Texto del Problema (NLP Features - 32 variables):
+      - `problem_text_bert_pca_0` hasta `problem_text_bert_pca_31`.
+      - Son las 32 componentes principales (PCA) extraídas a partir de un modelo BERT preentrenado 
+        sobre el enunciado en lenguaje natural de la pregunta matemática.
+
+B. ¿QUÉ VARIABLES SE EXCLUYEN OBLIGATORIAMENTE DE X?:
+   Identificadores y control:
+   - `student_id` (para evitar que el árbol memorice al alumno en vez del comportamiento).
+   - `unit_test_assignment_log_id` y `problem_id` (claves primarias).
+   - `source_split` (indicador de partición train/evaluación).
+   - `score` (variable dependiente Y, ¡jamás entra en X para evitar fuga de datos!).
+
+C. ¿DÓNDE ESTÁ ESTO EN EL CÓDIGO?:
+   En `ASSISTments_RF_Colab_ES.ipynb`, Celda 4, líneas 7-13:
+   ```python
+   id_columns = {
+       'score', 'student_id', 'source_split',
+       'unit_test_assignment_log_id', 'problem_id'
+   }
+   feature_columns = [column for column in df.columns if column not in id_columns]
+   X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
+   ```
+
+====================================================================================================
+6. PREGUNTA 5: DATA EN CRUDO VS. DATA PREPROCESADA (MOSTRAR EN EXCEL EN COLUMNAS)
+====================================================================================================
+La profesora dijo: "La data en crudo me la muestran en columnas de Excel... Aquí está como texto plano... 
+yo quiero que en ese momento me la tengan ya transformada a Excel en columnas para poderlo revisar".
+
+A. LA REALIDAD DE LA DATA EN CRUDO:
+   - Son 7 archivos CSV relacionales independientes. El archivo de telemetría `action_logs.csv` tiene 
+     1.43 Gigabytes y más de 30 millones de filas. Si se intenta abrir completo en Excel, Excel se congela 
+     o supera el límite de 1,048,576 filas.
+   - Solución lista para mostrarle: Abrir el archivo `Data_Cruda_Muestra_Columnas_Excel.xlsx` que dejamos 
+     listo en la carpeta del proyecto.
+     Contiene hojas separadas con columnas formateadas:
+     - Hoja 1: `training_scores` (columnas: assignment_log_id, problem_id, score).
+     - Hoja 2: `evaluation_scores` (columnas de evaluación).
+     - Hoja 3: `assignment_relationships` (conecta unit_test con in_unit).
+     - Hoja 4: `problem_details` (habilidad CCSS, texto BERT).
+     - Hoja 5: `sequence_details` (rutas curriculares).
+     - Hoja 6: `action_logs` (eventos crudos de clicks y tutoría).
+
+B. LA DATA PREPROCESADA:
+   - Abrir el archivo `Data_Procesada_Muestra_Columnas_Excel.xlsx`.
+   - Mostrar cómo se transformaron los millones de filas crudas en una sola tabla analítica:
+     51,042 filas (3,000 estudiantes representativos) y 722 columnas predictoras numéricas listas para el modelo.
+
+C. PASOS DEL PREPROCESAMIENTO (En `ASSISTments_01_Preparar_CSV.ipynb`):
+   1. Muestreo reproducible: 3,000 estudiantes aleatorios con semilla 42 (`MAX_STUDENTS = 3000`).
+   2. Cruce relacional: `assignment_relationships.csv` mapea exámenes finales con tareas formativas previas.
+   3. Agregación temporal por bloques: `action_logs.csv` se lee en chunks de 300,000 filas sumando eventos.
+   4. Codificación categórica: `pd.get_dummies` sobre rutas curriculares y habilidades (666 dummies).
+   5. Desempaquetado de BERT PCA (32 columnas continuas float32).
+   6. Imputación: ausentes en acciones -> 0; ausentes numéricos -> -1.
+
+====================================================================================================
+7. PREGUNTA 6: MODELADO — ENTRADA, PROCESO Y SALIDA
+====================================================================================================
+La profesora preguntará: "¿Dónde está la entrada, cuál es el proceso y cuál es la salida en el código?".
+
+Vayan directamente a `ASSISTments_RF_Colab_ES.ipynb`, Celda 4:
+
+1. ENTRADA (X_train):
+   - Líneas 32-35 de la Celda 4:
+     ```python
+     X_train = X.iloc[train_idx]
+     y_train = y.iloc[train_idx].to_numpy()
+     ```
+   - Explicación técnica: La entrada es una matriz bidimensional de dimensiones (39,935 filas x 722 columnas)
+     de tipo numérico `float32`, conteniendo únicamente los registros donde `source_split == 'train'`.
+
+2. PROCESO (Random Forest Classifier):
+   - Líneas 40-52 de la Celda 4:
+     ```python
+     rf = RandomForestClassifier(
+         n_estimators=N_ESTIMATORS, # 600 árboles
+         max_depth=19,
+         min_samples_split=10,
+         min_samples_leaf=2,
+         max_features='sqrt',
+         bootstrap=True,
+         random_state=SEED, # 42
+         n_jobs=-1
+     )
+     rf.fit(X_train, y_train)
+     ```
+   - Explicación técnica: Se entrena un ensamble de 600 árboles de decisión no correlacionados mediante la 
+     técnica de Bagging (Bootstrap Aggregation) con subespacios aleatorios (selecciona aleatoriamente 
+     sqrt(722) ≈ 27 variables en cada partición de nodo). Cada árbol evalúa la reducción de impureza de Gini 
+     hasta una profundidad máxima de 19 niveles.
+
+3. SALIDA:
+   - Líneas 53-55 de la Celda 4:
+     ```python
+     y_pred = rf.predict(X_test)
+     probabilities = rf.predict_proba(X_test)
+     ```
+   - Explicación técnica: El modelo produce dos tipos de salida para los 11,107 registros de prueba:
+     a) Salida discreta / clase predicha (`y_pred`): Vector con valores 0 o 1, asignados por votación de la mayoría.
+     b) Salida continua / probabilística (`probabilities`): Matriz (11107 x 2) donde la columna 0 es la 
+        probabilidad estimada de fallo P(score=0) y la columna 1 es la probabilidad de éxito P(score=1), 
+        calculada como la fracción de árboles individuales que votaron por cada clase.
+
+====================================================================================================
+8. PREGUNTA 7: PARÁMETROS VS. HIPERPARÁMETROS (PREGUNTAS TRAMPA)
+====================================================================================================
+
+A. DIFERENCIA CONCEPTUAL:
+   - HIPERPARÁMETROS: Valores de configuración externa establecidos ANTES del entrenamiento por el ingeniero.
+     No se aprenden de los datos. Controlan la estructura del modelo y previenen el sobreajuste.
+   - PARÁMETROS: Valores internos que el algoritmo calcula y ajusta DURANTE el entrenamiento al observar los datos.
+     En Random Forest son: las variables elegidas para cada nodo, los umbrales de división numéricos 
+     (thresholds, ej.: `action_hint_requested <= 2.5`) y la proporción de clases en las hojas terminales.
+
+B. HIPERPARÁMETROS USADOS EN NUESTRO MODELO (¡TODOS TIENEN VALORES NO POR DEFECTO!):
+   * `n_estimators = 600` (El valor por defecto en scikit-learn es 100). Tomado del paper original.
+   * `max_depth = 19` (El valor por defecto es None / profundidad infinita). Limita el crecimiento del árbol.
+   * `min_samples_split = 10` (El valor por defecto es 2). Mínimo de observaciones requeridas para dividir un nodo.
+   * `min_samples_leaf = 2` (El valor por defecto es 1). Mínimo de muestras en una hoja terminal.
+   * `max_features = 'sqrt'` (Evalúa ~27 variables al azar por corte).
+   * `bootstrap = True` (Muestreo con reemplazo).
+   * `random_state = 42` (Garantiza reproducibilidad exacta del experimento).
+   * `n_jobs = -1` (Paralelización en todos los núcleos de CPU disponibles).
+
+C. PREGUNTAS TRAMPA DE LA PROFESORA: "¿QUÉ PASA SI LE CAMBIAMOS TAL VALOR?":
+   1. "Si aumento `max_depth` a 50 o lo dejo en None, ¿qué sucede?"
+      RESPUESTA: Provoca SOBREAJUSTE (Overfitting). Los árboles crecerán hasta memorizar el ruido específico 
+      de las 39,935 filas de entrenamiento; el error de train será casi 0, pero aumentará drásticamente la varianza 
+      y caerá la capacidad de generalización en test.
+   2. "Si reduzco `max_depth` a 2 o 3, ¿qué sucede?"
+      RESPUESTA: Provoca SUBAJUSTE (Underfitting). Los árboles quedan como "tocones" (decision stumps) y no son 
+      capaces de capturar las relaciones no lineales entre las acciones de tutoría y el rendimiento. El sesgo sube.
+   3. "Si aumento `n_estimators` de 600 a 1500, ¿el modelo sobreajusta?"
+      RESPUESTA: ¡NO sobreajusta! Según el Teorema Fundamental de Ensamble de Leo Breiman, en Random Forest 
+      aumentar el número de árboles no causa sobreajuste, sino que converge asintóticamente a un límite de error. 
+      Sin embargo, triplica el consumo de memoria RAM y el tiempo de cómputo sin mejoras significativas en el AUC.
+   4. "Si cambio `max_features` a 1.0 (todas las variables), ¿qué ocurre?"
+      RESPUESTA: Se destruye la descorrelación del bosque. Todos los árboles tenderán a elegir la misma variable 
+      fuerte en la raíz (ej. conteo de pistas), comportándose como árboles correlacionados (simple Bagging), 
+      perdiendo la principal ventaja matemática de Random Forest que es reducir la varianza entre árboles.
+   5. "Si aumento `min_samples_leaf` de 2 a 50, ¿qué ocurre?"
+      RESPUESTA: Actúa como regularización fuerte. Poda las hojas pequeñas, suaviza las probabilidades predichas 
+      y reduce la varianza, pero si es excesivo puede no detectar subgrupos raros de estudiantes en riesgo.
+
+====================================================================================================
+9. PREGUNTA 8: EVALUACIÓN — FÓRMULAS, MATRIZ DE CONFUSIÓN Y GRÁFICOS
+====================================================================================================
+
+Vayan a `ASSISTments_RF_Colab_ES.ipynb`, Celda 4 y Celda 6:
+
+A. MATRIZ DE CONFUSIÓN (11,107 filas del conjunto de evaluación):
+   Filas = Clase Real | Columnas = Clase Predicha
+
+                         Predicho 0 (Fallo)   Predicho 1 (Éxito)    Total Real
+   Real 0 (Fallo)        2,526 (VN)           2,009 (FP)            4,535
+   Real 1 (Éxito)        1,298 (FN)           5,274 (VP)            6,572
+   Total Predicho        3,824                7,283                 11,107
+
+   - Verdaderos Negativos (VN): 2,526 estudiantes que fallaron y el modelo predijo que fallarían.
+   - Falsos Positivos (FP): 2,009 estudiantes que fallaron pero el modelo predijo erróneamente que tendrían éxito.
+   - Falsos Negativos (FN): 1,298 estudiantes que tuvieron éxito pero el modelo predijo erróneamente que fallarían.
+   - Verdaderos Positivos (VP): 5,274 estudiantes que tuvieron éxito y el modelo predijo correctamente éxito.
+
+B. FÓRMULAS TÉCNICAS Y VALORES EXACTOS:
+   * EXACTITUD (Accuracy):
+     Fórmula: (VP + VN) / Total = (5274 + 2526) / 11107 = 7800 / 11107 = 0.7022 (70.22%)
+     Interpretación: El 70.22% de todas las predicciones fueron correctas.
+
+   * RECALL / SENSIBILIDAD DE CLASE 1 (Éxito):
+     Fórmula: VP / (VP + FN) = 5274 / (5274 + 1298) = 5274 / 6572 = 0.8025 (80.25%)
+
+   * PRECISIÓN DE CLASE 1:
+     Fórmula: VP / (VP + FP) = 5274 / (5274 + 2009) = 5274 / 7283 = 0.7242 (72.42%)
+
+   * F1-SCORE DE CLASE 1:
+     Fórmula: 2 * (Precision * Recall) / (Precision + Recall) = 0.7612
+
+   * RECALL / SENSIBILIDAD DE CLASE 0 (Fallo / Estudiantes en riesgo - ¡LA MÉTRICA CLAVE!):
+     Fórmula: VN / (VN + FP) = 2526 / (2526 + 2009) = 2526 / 4535 = 0.5570 (55.70%)
+     Interpretación técnica: De 4,535 fallos reales, el modelo identificó correctamente a 2,526 (55.7%), 
+     mientras que 2,009 pasaron inadvertidos como falsos éxitos. Por eso se recomienda en despliegue 
+     ajustar el umbral de decisión para aumentar este recall.
+
+   * PRECISIÓN DE CLASE 0:
+     Fórmula: VN / (VN + FN) = 2526 / (2526 + 1298) = 2526 / 3824 = 0.6606 (66.06%)
+
+   * MÉTRICAS MACRO (Promedio no ponderado entre ambas clases):
+     - Precision macro: (0.7242 + 0.6606) / 2 = 0.6924 (0.692)
+     - Recall macro: (0.8025 + 0.5570) / 2 = 0.6797 (0.680)
+     - F1 macro: (0.7612 + 0.6044) / 2 = 0.6828 (0.683)
+
+C. INTERPRETACIÓN DE LOS GRÁFICOS (Celda 6 de ASSISTments_RF_Colab_ES.ipynb):
+   1. Gráfico de barras resumen: Muestra Accuracy (0.702), Macro-F1 (0.683) y Recall de clase 0 (0.557).
+   2. Curva ROC (Receiver Operating Characteristic) para score=0:
+      - Eje X: Tasa de Falsos Positivos (FPR = FP / (FP + VN)).
+      - Eje Y: Tasa de Verdaderos Positivos o Sensibilidad (TPR = VN / (VN + FP)).
+      - Línea punteada gris: Clasificador aleatorio sin capacidad predictiva (AUC = 0.50).
+      - Curva naranja del modelo: Área bajo la curva (ROC-AUC) = 0.7528 (0.753).
+      - Significado: Mide la capacidad del modelo para ordenar y discriminar entre estudiantes que fallarán 
+        y estudiantes que acertarán a través de TODOS los posibles umbrales de probabilidad (de 0.0 a 1.0).
+   3. Gráfico de Importancia de Variables (Feature Importance - MDI):
+      - Muestra las 15 variables con mayor reducción media de impureza Gini.
+      - Las variables dominantes son las acciones de tutoría previa (`action_answer_requested`, 
+        `available_core_tutoring_no_tutoring`, etc.) y las componentes semánticas del problema (`problem_text_bert_pca_1`).
+      - Aclaración técnica que le encantará a la profesora: "La importancia de variables indica asociación 
+        predictiva con la reducción de impureza, pero NO demuestra causalidad ni dirección del efecto".
+
+====================================================================================================
+10. PREGUNTA 9: ETAPA PREDICTIVA / PROTOTIPO DE INFERENCIA
+====================================================================================================
+La profesora dijo: "En un prototipo tienen que saber las entradas y la salida. Tienen que tener claro qué 
+ingresa en su modelo y una vez que tienen el modelo, dónde lo van a implementar".
+
+Vayan a `ASSISTments_RF_Colab_ES.ipynb`, Celda 9 y Celda 11:
+* ENTRADA DEL PROTOTIPO:
+  Una tabla o registro nuevo con las mismas 722 variables numéricas procesadas. La etiqueta `score` se 
+  oculta totalmente al predictor (`demo_X = X.iloc[demo_positions].copy()`).
+* PROCESO:
+  Inferencia en memoria con el modelo entrenado:
+  `demo_predictions = rf.predict(demo_X)`
+  `demo_probabilities = rf.predict_proba(demo_X)`
+* SALIDA DEL PROTOTIPO:
+  Un archivo CSV (`predicciones_demo_assistments.csv`) que contiene para cada estudiante y problema:
+  - `student_id`
+  - `unit_test_assignment_log_id`
+  - `problem_id`
+  - `score_predicho` (0 o 1)
+  - `probabilidad_score_0` (Probabilidad de fallo - usada para activar la alerta temprana)
+  - `probabilidad_score_1` (Probabilidad de éxito)
+
+====================================================================================================
+11. GUÍA RÁPIDA DE "SEÑALAR CON EL DEDO" EN LOS NOTEBOOKS DURANTE LA EXPOSICIÓN
+====================================================================================================
+
+Cuando la profesora haga cada una de estas preguntas, ustedes abren el archivo correspondiente y señalan:
+
+1. SI PREGUNTA: "¿Dónde descargaron / prepararon los datos crudos?"
+   -> Abran: `ASSISTments_01_Preparar_CSV.ipynb`
+   -> Señalen: Celda 2 (Rutas y parámetros: MAX_STUDENTS=3000, SEED=42, CHUNK_SIZE=300,000) 
+      y Celda 4 (Funciones de lectura por bloques y agregación de action_logs).
+
+2. SI PREGUNTA: "¿Dónde separaron la variable independiente X y dependiente Y?"
+   -> Abran: `ASSISTments_RF_Colab_ES.ipynb`
+   -> Señalen: Celda 4, líneas 1-19:
+      - `feature_columns` excluyendo identificadores y `score` -> Esto es X (722 columnas).
+      - `y = pd.to_numeric(df['score'], ...)` -> Esto es Y.
+
+3. SI PREGUNTA: "¿Dónde definieron los hiperparámetros del algoritmo?"
+   -> Abran: `ASSISTments_RF_Colab_ES.ipynb`
+   -> Señalen: Celda 4, líneas 40-50:
+      El bloque `rf = RandomForestClassifier(n_estimators=600, max_depth=19, min_samples_split=10, ...)`
+
+4. SI PREGUNTA: "¿Dónde está la entrada, proceso y salida del modelado?"
+   -> Abran: `ASSISTments_RF_Colab_ES.ipynb`
+   -> Señalen: Celda 4:
+      - ENTRADA: línea 32 (`X_train`)
+      - PROCESO: línea 52 (`rf.fit(X_train, y_train)`)
+      - SALIDA: líneas 53-54 (`rf.predict(X_test)` y `rf.predict_proba(X_test)`)
+
+5. SI PREGUNTA: "¿Dónde se calculan y muestran las métricas y la matriz de confusión?"
+   -> Abran: `ASSISTments_RF_Colab_ES.ipynb`
+   -> Señalen: Celda 4 (diccionario `metrics` en líneas 60-80) y Celda 6 (gráficos de matriz y ROC).
+
+6. SI PREGUNTA: "¿Dónde está la etapa de inferencia / predicción de datos nuevos?"
+   -> Abran: `ASSISTments_RF_Colab_ES.ipynb`
+   -> Señalen: Celda 9 (demostración de predicción y probabilidades) y Celda 11 (modo predicción real).
+
+7. SI PIDE: "Muéstrenme la data en crudo y la procesada en Excel con columnas"
+   -> Abran en Microsoft Excel:
+      - `Data_Cruda_Muestra_Columnas_Excel.xlsx` (pestañas con las tablas relacionales originales).
+      - `Data_Procesada_Muestra_Columnas_Excel.xlsx` (tabla consolidada con las 722 variables).
+
+====================================================================================================
+12. CHECKLIST ESTRICTO DE ENTREGA SEGÚN LAS REGLAS DE LA PROFESORA
+====================================================================================================
+Para no sacar CERO, verificar cada uno de los siguientes puntos antes de enviar:
+
+[ ] 1. EMPAQUETADO: Un solo archivo comprimido `.ZIP` nombrado obligatoriamente con los apellidos 
+       de los integrantes (ejemplo: `Garcia_Moreira_Parraga_Sornoza_Vera.zip`).
+[ ] 2. FORMATO DEL INFORME: El informe técnico DEBE estar en formato Word (`.docx`), ¡NO en PDF!
+[ ] 3. ENLACES OBLIGATORIOS EN LA CARÁTULA DEL INFORME EN WORD:
+       - Enlace al repositorio de GitHub del grupo con el código y notebooks.
+       - Enlace al Google Colab ejecutable con permisos de visualización ("Cualquiera con el enlace").
+       - Enlace a la carpeta de Google Drive que contiene la data en crudo y la data procesada.
+[ ] 4. ETIQUETADO Y CONCEPTOS TÉCNICOS:
+       - Cero menciones de "sepsis" o "repositorio 1 y 2".
+       - Criterio de éxito: AUC >= 0.75 y detección temprana de estudiantes en riesgo de no dominar habilidades CCSS.
+       - Variable dependiente: `score` (0 no exitoso, 1 exitoso al primer intento sin tutoría o respuesta abierta).
+[ ] 5. FECHA Y HORA LÍMITE: Martes antes de las 3:00 PM (15:00 hrs).
+
+====================================================================================================
+FIN DE LA GUÍA DE ESTUDIO - ¡ÉXITOS EN LA DEFENSA, GRUPO 8!
+====================================================================================================

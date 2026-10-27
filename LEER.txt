@@ -1,0 +1,22 @@
+Buenas,
+Debido a que el código en crudo PESA demasiado le paso el link de drive donde lo podrá descargar:
+https://drive.google.com/drive/folders/1S_aKJnx-7o4buB5I-ggqgLV5XLe3qbUc?usp=sharing
+
+Dentro de /data está TODA LA DATA EN CRUDO.
+
+en /salida es la DATA que usamos en nuestro código final y los datos resumidos.
+
+Otros archivos importantes del zip
+
+- ASSISTments_01_Preparar_CSV.ipynb
+Es el notebook usado en Google colab para PREPARAR Y RECORTAR DATOS.
+- ASSISTments_RF_Colab_ES.ipynb 
+Es el código usado para el ALGORITMO RANDOMFOREST
+
+Otros documentos: 
+Informe técnico en formato Word y pdf, asimismo, tamb el documento con el caso de estudio orginal.
+
+Otros folders:
+EDMCup2023_referencia
+
+TODO el código usado por el caso de estudio original, usado como referencia para el nuestro.

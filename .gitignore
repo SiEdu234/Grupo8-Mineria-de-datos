@@ -1,0 +1,27 @@
+# Large dataset files (exceed GitHub limit)
+*.csv
+*.csv.gz
+*.gz
+*.zip
+*.tar
+*.parquet
+
+# Data directories with multi-GB clickstream logs
+EDMCup2023_fuente_oficial/
+EDMCup2023_referencia/
+salida/
+
+# Python & Environment
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.ipynb_checkpoints/
+*.tmp
+_temp*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
