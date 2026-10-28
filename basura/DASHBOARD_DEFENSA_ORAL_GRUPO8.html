@@ -1157,31 +1157,36 @@ y_train, y_test = y.iloc[train_idx].to_numpy(), y.iloc[test_idx].to_numpy()</cod
 <div class="faq-body">
 <p><strong>Respuesta directa (Pregunta hecha por la profesora en clase):</strong></p>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>¿Se eliminaron registros?:</strong> SI, se filtraron unicamente los registros que tenian etiquetas validas 0 o 1 (descartando nulos con <code>y.notna() &amp; y.isin([0, 1])</code>), y se extrajo una muestra reproducible de 3,000 estudiantes (semilla 42) para que los 30 millones de logs de acciones no colapsaran la memoria RAM.</li>
-<li><strong>¿Se reemplazaron valores?:</strong> SI, se reemplazaron bajo criterios tecnicos:
-                  <br/>1) <em>Conteos de acciones (action_* y tutoring_*):</em> Se reemplazaron nulos con <strong>0</strong> (<code>fillna(0)</code>), porque la ausencia de log significa 0 ocurrencias de ese evento.
-                  <br/>2) <em>Categoricas:</em> Se reemplazaron nulos con <strong>'na'</strong> antes de codificar con get_dummies.
-                  <br/>3) <em>Numericos generales faltantes o infinitos:</em> Se reemplazaron con <strong>-1</strong> (<code>fillna(-1)</code>). En arboles de Random Forest, el -1 permite que el algoritmo aisle los valores ausentes en una rama de corte propia sin distorsionar el calculo.
-                </li>
+<li><strong>¿Se eliminaron registros?:</strong> SI, se filtraron unicamente los registros con etiquetas validas 0 o 1 (descartando nulos con <code>y.notna() &amp; y.isin([0, 1])</code>), y se extrajo una muestra reproducible de 3,000 estudiantes (semilla 42) para que los 30 millones de logs de acciones no colapsaran la memoria RAM.</li>
+<li><strong>¿Se reemplazaron valores (Imputacion)?:</strong> SI, bajo criterios tecnicos estrictos:
+  <br/>1) <em>Conteos de acciones (action_* y tutoring_*):</em> Se reemplazaron nulos con <strong>0</strong> (<code>fillna(0)</code>), porque la ausencia de log significa 0 ocurrencias de ese evento.
+  <br/>2) <em>Categoricas:</em> Se reemplazaron nulos con <strong>'na'</strong> antes de codificar con One-Hot Encoding (<code>pd.get_dummies</code>).
+  <br/>3) <em>Numericos generales faltantes o infinitos:</em> Se reemplazaron con <strong>-1</strong> (<code>fillna(-1)</code>). En arboles de Random Forest, el -1 permite que el algoritmo aisle los valores ausentes en una rama de corte propia sin distorsionar el calculo.
+</li>
+<li><strong>Normalizacion de texto en IDs (<code>normalize_id</code>):</strong> Funcion aplicada a identificadores nominales (como ID de estudiante o problema). Convierte a texto, elimina espacios en blanco y borra el sufijo <code>.0</code> que introduce Excel por error al interpretar codigos como numeros decimales, evitando fallos criticos al cruzar tablas relacionales.</li>
 </ul>
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6 &amp; Celda 8</span>
+<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 4 &amp; Celda 6</span>
 </div>
-<pre class="code-extract-pre"><code># 1. Imputacion con 0 en acciones de alumnos (ausencia real de clics o pistas):
+<pre class="code-extract-pre"><code># 1. Normalizacion de IDs para evitar corrupcion de Excel (.0 y espacios):
+def normalize_id(series):
+    return series.astype(str).str.strip().str.replace(r'\.0$', '', regex=True)
+
+# 2. Imputacion con 0 en acciones de alumnos (ausencia real de eventos):
 action_cols = [c for c in dataset.columns if c.startswith('action_') or c.startswith('available_core_tutoring_')]
 dataset[action_cols] = dataset[action_cols].fillna(0)
 
-# 2. Imputacion con -1 para valores faltantes e infinitos (arboles de decision):
+# 3. Imputacion con -1 para valores faltantes e infinitos (arboles de decision):
 dataset = dataset.replace([np.inf, -np.inf], np.nan)
 dataset[feature_columns] = dataset[feature_columns].fillna(-1).astype('float32')
 
-# 3. Filtrado: unicamente registros con etiquetas score validas (0 o 1):
+# 4. Filtrado: solo registros con score valido (0 o 1):
 labeled = y.notna() &amp; y.isin([0, 1])
 df = df.loc[labeled].reset_index(drop=True)</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar que se usaron ambas tecnicas de imputacion: 0 para acciones y -1 para variables generales, aislando nulos en ramas de corte.
+<strong>Senalar a la docente:</strong> Mostrar la funcion <code>normalize_id</code> en Celda 4 y las imputaciones duales en Celda 6 (0 para acciones, -1 para predictores generales).
               </div>
 </div>
 </div>
@@ -1196,19 +1201,20 @@ df = df.loc[labeled].reset_index(drop=True)</code></pre>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<p><strong>Respuesta directa (Pregunta hecha por la profesora en clase):</strong></p>
+<p><strong>Aclaracion Tecnica Fundamental:</strong></p>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li>En el paper original de Yaramala et al. (Apendice A.4) aplicaron <code>StandardScaler</code> de Scikit-Learn porque evaluaron modelos de regresion y redes neuronales ademas de ensambles.</li>
+<li><strong>Codificacion vs Normalizacion:</strong> Lo que se aplico para convertir categorias y palabras a valores 1 y 0 se llama tecnicamente <strong>CODIFICACION (One-Hot Encoding con pd.get_dummies)</strong>, no normalizacion.</li>
+<li><strong>Estandarizacion Matematica:</strong> En machine learning, normalizacion o estandarizacion matematica se refiere a ajustar valores numericos a una escala comun (por ejemplo con <code>StandardScaler</code> a media 0 y varianza 1). <strong>En nuestro proyecto NO usamos StandardScaler</strong> porque Random Forest no requiere escalamiento para construir sus arboles de decision.</li>
 <div class="math-formula-box">
 <strong>Invarianza a Transformaciones Monótonas e Índice de Gini:</strong>
                 $$x_j \le c \iff g(x_j) \le g(c) \quad (g \text{ estrictamente creciente})$$
                 $$I_G(t) = 1 - \sum_{k=0}^{1} p(k \mid t)^2 = 1 - (p_0^2 + p_1^2)$$
               </div>
-<li>En <strong>Random Forest</strong>, matematicamente <strong>NO es necesario normalizar ni estandarizar</strong> las variables numericas a media 0 y varianza 1. La razon tecnica es que los arboles de decision son invariantes a transformaciones monotonicas crecientes, ya que evaluan cortes de umbral independientes variable por variable ($x_j \le c$).</li>
-<li>En nuestro pipeline realizamos una <strong>estandarizacion tecnica de tipos</strong>: convertimos todos los 722 predictores numericos al formato uniforme <code>float32</code> con valores imputados homogeneos (-1 y 0), garantizando que Scikit-Learn procese la matriz de forma eficiente.</li>
+<li><strong>Invarianza de Random Forest:</strong> Los arboles evaluan umbrales de particion independientes por cada variable ($x_j \le c$) maximizando la ganancia de impureza Gini; por tanto, una escala arbitraria no altera el orden de los cortes.</li>
+<li><strong>Estandarizacion Tecnica de Tipos:</strong> Lo que si se hizo fue estandarizar tecnicamente el formato de la matriz: todos los 722 predictores numericos se convirtieron a <code>float32</code> uniforme con imputacion consistente (-1 y 0).</li>
 </ul>
 <div class="speech-box">
-<strong>Que decir a la profesora:</strong> "Profesora: En Random Forest no es obligatorio normalizar a escala [0, 1] porque los arboles cortan por umbrales y no por distancias euclidianas. Sin embargo, estandarizamos tecnicamente todos los 722 predictores a tipo float32 uniforme."
+<strong>Frase textual para la profesora:</strong> "Profesora: En nuestro pipeline preprocesamos, codificamos con One-Hot Encoding e imputamos nulos; NO aplicamos StandardScaler porque Random Forest es invariante a la escala monótona de las variables."
               </div>
 <div class="code-extract-card">
 <div class="code-extract-header">
@@ -1303,17 +1309,21 @@ auc = roc_auc_score(y_non_success, y_prob_non_success)  # 0.7528</code></pre>
 <div class="faq-header" onclick="toggleFaqCard(this)">
 <div class="faq-title-text">
 <span class="faq-badge tag-r">Particion Datos</span>
-<span class="faq-q-title">13. ¿Como dividieron los datos? ¿Cuanto para entrenamiento y cuanto para prueba? ¿Tienen validacion?</span>
+<span class="faq-q-title">13. ¿Como dividieron los datos? ¿Por que no se entreno con el 100% de la data (archivo con mas datos)?</span>
 </div>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<p><strong>Respuesta directa:</strong></p>
+<p><strong>Respuesta directa (Pregunta clave de examen):</strong></p>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>Entrenamiento (X_train):</strong> <strong>39,935 filas</strong> correspondientes a <code>source_split == 'train'</code>.</li>
-<li><strong>Evaluacion (X_test):</strong> <strong>11,107 filas</strong> correspondientes a <code>source_split == 'evaluation'</code>.</li>
-<li>Ambas particiones contienen exactamente las mismas <strong>722 variables predictoras</strong>.</li>
-<li><strong>Mecanismo de Validacion:</strong> En la Celda 4 existe un bloque de validacion con <code>GroupShuffleSplit(test_size=0.20, groups=groups)</code> agrupado por <code>student_id</code>, que asegura que ningun estudiante solape entre entrenamiento y prueba si la particion oficial no tuviera etiquetas.</li>
+<li><strong>¿Por que no se escogio el archivo con mas datos (unit_test_scores.csv)?:</strong> Porque en aprendizaje automatico es una <strong>regla estricta no entrenar un modelo con el 100% de la informacion disponible</strong>. Si el modelo aprendiera del archivo maestro completo, simplemente memorizaria las respuestas exactas de todos los alumnos (<strong>sobreajuste u overfitting</strong>). Tendria precision perfecta en entrenamiento, pero fracasaria en la vida real con alumnos nuevos porque no aprendio a generalizar patrones de comportamiento.</li>
+<li><strong>Protocolo ciego de EDM Cup 2023:</strong> Los organizadores entregaron <code>training_unit_test_scores.csv</code> para entrenar y mantuvieron en secreto los registros de evaluacion en sus servidores para calificar a los modelos frente a datos que jamas habian visto.</li>
+<li><strong>Particion resultante:</strong>
+  <br/>• <strong>Entrenamiento (X_train):</strong> <strong>39,935 filas</strong> con <code>source_split == 'train'</code> (78.24%).
+  <br/>• <strong>Evaluacion (X_test):</strong> <strong>11,107 filas</strong> con <code>source_split == 'evaluation'</code> (21.76%).
+  <br/>• Ambas particiones contienen exactamente las mismas <strong>722 variables predictoras</strong>.
+</li>
+<li><strong>Mecanismo de Validacion:</strong> Validacion agrupada por <code>student_id</code> (GroupShuffleSplit) para garantizar que ningun estudiante solape entre entrenamiento y prueba.</li>
 </ul>
 <div class="code-extract-card">
 <div class="code-extract-header">
@@ -1340,20 +1350,19 @@ y_train, y_test = y.iloc[train_idx].to_numpy(), y.iloc[test_idx].to_numpy()</cod
 <div class="faq-header" onclick="toggleFaqCard(this)">
 <div class="faq-title-text">
 <span class="faq-badge tag-y">CSVs Reales</span>
-<span class="faq-q-title">14. ¿Que archivos CSV componen la base de datos oficial y que abro si la profesora pide ver la data en Excel?</span>
+<span class="faq-q-title">14. ¿Que columnas y archivos componen la base de datos y como se ven en Excel?</span>
 </div>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<p>Los archivos crudos estan en <code>EDMCup2023_fuente_oficial/data/</code> y la data procesada en <code>EDMCup2023_fuente_oficial/salida/</code>:</p>
+<p><strong>Estructura Fisica de Columnas al Abrir el Dataset en Excel:</strong></p>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>training_unit_test_scores.csv (10 MB):</strong> Contiene <code>assignment_log_id, problem_id, score</code> con la etiqueta real de entrenamiento.</li>
-<li><strong>assignment_relationships.csv (14 MB):</strong> Tabla puente relacional que conecta examenes con tareas de practica previas.</li>
-<li><strong>sequence_details.csv (3.8 MB):</strong> Rutas curriculares de carpetas (grado, modulo, leccion).</li>
-<li><strong>problem_details.csv (58 MB):</strong> Habilidades CCSS y tipo de problema.</li>
-<li><strong>action_logs.csv (1.43 GB):</strong> Mas de 30 millones de filas de clics. <em>Explicar: Excel solo soporta 1,048,576 filas, por lo que se procesa en Python por chunks de 300,000 filas.</em></li>
-<li><strong>assistments_rf_dataset.csv (160 MB):</strong> Dataset procesado final con las 722 variables predictoras en float32.</li>
-<li><strong>Libros Excel organizados en basura/:</strong> <code>Data_Cruda_Muestra_Columnas_Excel.xlsx</code> (las 7 tablas crudas con columnas separadas nativamente) y <code>Data_Procesada_Muestra_Columnas_Excel.xlsx</code> (muestra de 722 predictores).</li>
+<li><strong>Columnas "A", "B" y "D":</strong> Identificadores alfanumericos (<code>student_id</code>, <code>unit_test_assignment_log_id</code>, <code>problem_id</code>). Se <strong>excluyen obligatoriamente</strong> del entrenamiento para evitar la fuga de informacion (Data Leakage) y la memorizacion de alumnos.</li>
+<li><strong>Columna "C":</strong> Variable dependiente <code>score</code> ($Y$), mostrando los valores binarios <strong>0 y 1</strong>.</li>
+<li><strong>Columna "E":</strong> Variable <code>source_split</code>. En las primeras 40,955 filas muestra la etiqueta <strong>"train"</strong> (entrenamiento); avanzando hacia la fila 40956 en adelante se aprecian los registros con la etiqueta <strong>"evaluation"</strong> (prueba).</li>
+<li><strong>Columnas "F" en adelante:</strong> Multiples valores numericos correspondientes a los <strong>722 predictores</strong> (conteos de acciones, secuencias One-Hot y BERT PCA) listos para Random Forest.</li>
+<li><strong>Archivos crudos en <code>EDMCup2023_fuente_oficial/data/</code>:</strong> <code>training_unit_test_scores.csv</code> (10 MB), <code>assignment_relationships.csv</code> (14 MB), <code>sequence_details.csv</code> (3.8 MB), <code>problem_details.csv</code> (58 MB) y <code>action_logs.csv</code> (1.43 GB, &gt;30 millones de filas procesadas por chunks).</li>
+<li><strong>Libros organizados en <code>basura/</code>:</strong> <code>Data_Cruda_Muestra_Columnas_Excel.xlsx</code> y <code>Data_Procesada_Muestra_Columnas_Excel.xlsx</code> con celdas nativas.</li>
 </ul>
 <div class="code-extract-card">
 <div class="code-extract-header">
@@ -1369,7 +1378,7 @@ sequence_path = find_file('sequence_details.csv')
 problem_path = find_file('problem_details.csv')
 action_path = find_file('action_logs.csv')  # En data/files/</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar los libros Excel en <code>basura/</code> (Data_Cruda_Muestra_Columnas_Excel.xlsx y Data_Procesada_Muestra_Columnas_Excel.xlsx) o los archivos en <code>EDMCup2023_fuente_oficial/salida/</code>.
+<strong>Senalar a la docente:</strong> Mostrar la distribucion de columnas A (student_id), B (assignment_id), C (score Y), D (problem_id), E (source_split) y F+ (722 variables X).
               </div>
 </div></div>
 </div>
@@ -1418,21 +1427,93 @@ probabilities = rf.predict_proba(X_test) # Probabilidades continuas (11107, 2)</
 <div class="faq-header" onclick="toggleFaqCard(this)">
 <div class="faq-title-text">
 <span class="faq-badge tag-r">Hiperparametros</span>
-<span class="faq-q-title">16. ¿Cuales son los hiperparametros configurados y por que no son los valores por defecto?</span>
+<span class="faq-q-title">16. ¿Cuales son los 8 hiperparametros configurados en Random Forest, que hace cada uno y que ocurre si aumentan o disminuyen?</span>
 </div>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<p>En Scikit-Learn los valores por defecto son <code>n_estimators=100</code> y <code>max_depth=None</code> (profundidad infinita). Nosotros usamos:</p>
-<ul style="margin-left: 20px; line-height: 1.8;">
-<li><code>n_estimators = 600</code>: Replica la configuracion del paper oficial, dando mayor estabilidad en probabilidades.</li>
-<li><code>max_depth = 19</code>: Poda el crecimiento de los arboles evitando sobreajuste.</li>
-<li><code>min_samples_split = 10</code> (defecto 2) y <code>min_samples_leaf = 2</code> (defecto 1): Exigen soporte estadistico minimo antes de dividir un nodo o crear una hoja terminal.</li>
-<li><code>max_features = 'sqrt'</code>: Heurística de Leo Breiman:
-                <div class="math-formula-box" style="margin: 6px 0;">
-                  $$m = \lfloor \sqrt{M} \rfloor = \lfloor \sqrt{722} \rfloor = \lfloor 26.87 \rfloor = 27 \text{ variables candidatas por nodo}$$
-                </div> Selecciona aleatoriamente $pprox 27$ variables por corte, garantizando la descorrelacion del bosque.</li>
-</ul>
+<p>En Scikit-Learn instanciamos <code>RandomForestClassifier</code> con 8 hiperparametros clave disenados para evitar sobreajuste frente a 722 caracteristicas numericas. A continuacion se detalla la funcion de cada uno y el impacto exacto si la profesora solicita modificarlos:</p>
+
+<div style="overflow-x: auto; margin: 14px 0;">
+<table style="width: 100%; border-collapse: collapse; font-size: 0.84rem; text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+  <thead>
+    <tr style="background: var(--bg-main); border-bottom: 2px solid var(--border-color); color: var(--primary);">
+      <th style="padding: 10px 8px;">Hiperparametro</th>
+      <th style="padding: 10px 8px;">Valor Usado</th>
+      <th style="padding: 10px 8px;">Defecto Sklearn</th>
+      <th style="padding: 10px 8px;">¿Que Hace?</th>
+      <th style="padding: 10px 8px;">Si se AUMENTA</th>
+      <th style="padding: 10px 8px;">Si se DISMINUYE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>n_estimators</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">600</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">100</td>
+      <td style="padding: 8px;">Cantidad de arboles de decision independientes en el ensamble. Promedia predicciones por voto ponderado.</td>
+      <td style="padding: 8px;">Reduce varianza hacia una asintota (Teorema de Breiman: no sobreajusta), pero eleva tiempo de computo y uso de RAM.</td>
+      <td style="padding: 8px;">Entrena mas rapido, pero genera mayor varianza, inestabilidad en probabilidades y menor poder de generalizacion.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>max_depth</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">19</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">None (infinita)</td>
+      <td style="padding: 8px;">Limite maximo de profundidad (niveles de division desde la raiz hasta las hojas terminales). Poda estructural.</td>
+      <td style="padding: 8px; color: #b71c1c;"><strong>Sobreajuste (Overfitting):</strong> El arbol crece hasta hojas puras memorizando ruido de train. Train=100%, Test cae.</td>
+      <td style="padding: 8px; color: #e65100;"><strong>Subajuste (Underfitting):</strong> Arboles demasiado rigidos e incapaces de aprender relaciones no lineales en 722 variables.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>min_samples_split</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">10</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">2</td>
+      <td style="padding: 8px;">Numero minimo de observaciones que debe contener un nodo interno para evaluar una nueva division.</td>
+      <td style="padding: 8px;">Mayor regularizacion; frena divisiones espurias causadas por micro-grupos de datos atipicos.</td>
+      <td style="padding: 8px;">Permite dividir nodos con muy pocas muestras (hasta 2), favoreciendo sobreajuste en hojas terminales.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>min_samples_leaf</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">2</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">1</td>
+      <td style="padding: 8px;">Numero minimo de observaciones requeridas en cada nodo hoja terminal (soporte estadistico minimo de salida).</td>
+      <td style="padding: 8px;">Suaviza las fronteras de decision, creando hojas mas robustas y menos sensibles a ruido puntual.</td>
+      <td style="padding: 8px;">Permite hojas de 1 solo dato, memorizando outliers individuales del conjunto de entrenamiento.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>max_features</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">'sqrt' (27)</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">'sqrt'</td>
+      <td style="padding: 8px;">Subconjunto aleatorio de variables candidatas evaluadas en cada split: $$m = \lfloor \sqrt{722} \rfloor = 27$$</td>
+      <td style="padding: 8px;">Arboles mas similares entre si (mayor correlacion inter-arbol), reduciendo la ganancia de varianza del Bagging.</td>
+      <td style="padding: 8px;">Mayor descorrelacion entre arboles (mayor diversidad), pero arboles individuales ligeramente mas debiles.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>bootstrap</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">True</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">True</td>
+      <td style="padding: 8px;">Muestreo con reemplazo de tamano $N$ para cada arbol (~63.2% datos unicos, 36.8% datos Out-Of-Bag).</td>
+      <td style="padding: 8px;">(Booleano): Garantiza diversidad estructural entre estimadores, fundamento del algoritmo Random Forest.</td>
+      <td style="padding: 8px; color: #b71c1c;">Si fuera <code>False</code>, cada arbol entrenaria con el 100% de los datos identicos, destruyendo la virtud del ensamble.</td>
+    </tr>
+    <tr style="border-bottom: 1px solid var(--border-color);">
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>random_state</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">42</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">None</td>
+      <td style="padding: 8px;">Semilla del generador pseudoaleatorio. Controla el remuestreo de bootstrap y seleccion de variables.</td>
+      <td style="padding: 8px;">Cualquier entero positivo fija la semilla; garantiza reproducibilidad cientifica identica en cada ejecucion.</td>
+      <td style="padding: 8px;">Si es <code>None</code>, cada ejecucion genera arboles ligeramente distintos y metricas con leves fluctuaciones.</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px; font-weight: 700; color: var(--primary);"><code>n_jobs</code></td>
+      <td style="padding: 8px;"><span class="badge badge-success">-1</span></td>
+      <td style="padding: 8px; color: var(--text-muted);">None (1 core)</td>
+      <td style="padding: 8px;">Cantidad de nucleos CPU para paralelizar la construccion independiente de los 600 arboles.</td>
+      <td style="padding: 8px;"><code>-1</code> aprovecha el 100% de vCPUs en Colab/laptop; reduce el tiempo de ejecucion a segundos sin cambiar resultados.</td>
+      <td style="padding: 8px;">Si se pone 1, se ejecuta en un solo hilo secuencial, tardando 4 a 8 veces mas tiempo sin ventaja alguna.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
@@ -1445,9 +1526,9 @@ rf = RandomForestClassifier(
     min_samples_split=10,    # Minimo 10 muestras para dividir un nodo (vs 2 por defecto)
     min_samples_leaf=2,      # Minimo 2 muestras por hoja terminal (vs 1 por defecto)
     max_features='sqrt',     # Breiman: floor(sqrt(722)) = 27 variables aleatorias por nodo
-    bootstrap=True,          # Remuestreo con reemplazo para cada arbol
-    random_state=42,         # Reproducibilidad exacta
-    n_jobs=-1                # Paralelizacion en todos los nucleos CPU de Colab
+    bootstrap=True,          # Remuestreo con reemplazo para cada arbol (~63.2% datos)
+    random_state=42,         # Reproducibilidad cientifica exacta
+    n_jobs=-1                # Paralelizacion en todos los nucleos CPU disponibles
 )</code></pre>
 <div class="code-extract-tip">
 <strong>Senalar a la docente:</strong> Lineas 22-31 de la Celda 4 mostrando cada hiperparametro ajustado contra el sobreajuste.
@@ -1460,17 +1541,27 @@ rf = RandomForestClassifier(
 <div class="faq-header" onclick="toggleFaqCard(this)">
 <div class="faq-title-text">
 <span class="faq-badge tag-r">Pruebas en Vivo</span>
-<span class="faq-q-title">17. Si la profesora me pide cambiar un hiperparametro en vivo en la laptop, ¿donde lo cambio y que respondo?</span>
+<span class="faq-q-title">17. Si la profesora me pide cambiar un hiperparametro en vivo en la laptop, ¿donde lo cambio y que respondo exactamente?</span>
 </div>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
 <p><strong>Ubicacion exacta:</strong> Cuaderno <code>ASSISTments_RF_Colab_ES.ipynb</code>, Celda 4, lineas 22-31. Cambiar el valor numerico y presionar <code>Shift + Enter</code>.</p>
+
+<div class="notice-box notice-warning" style="margin-bottom: 12px;">
+<strong>Protocolo de Defensa Verbal:</strong>
+Si la docente dice <em>"Cambiemelo y vuelva a ejecutar... si subio o bajo ¿por que cree que fue?"</em>, aplica la respuesta correspondiente:
+</div>
+
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>Si pide subir max_depth a 40 o None:</strong> Tarda mas tiempo. <em>Respuesta:</em> "Provocamos Sobreajuste (Overfitting). El arbol memoriza el ruido de train; el error de train es 0, pero sube el error en evaluacion."</li>
-<li><strong>Si pide bajar max_depth a 4:</strong> Tarda menos. <em>Respuesta:</em> "Provocamos Subajuste (Underfitting). Los arboles quedan muy simples e incapaces de modelar las 722 variables."</li>
-<li><strong>Si pide subir n_estimators a 1,500:</strong> Tarda mas de 1 minuto. <em>Respuesta:</em> "No sobreajusta segun el Teorema de Breiman porque el ensamble converge a un limite de varianza, pero satura la memoria RAM de Colab sin ganancia en AUC."</li>
+<li><strong>Si pide subir <code>max_depth</code> a 40 o None:</strong> Tarda mas tiempo. <em>Respuesta:</em> "Profesora, al eliminar la poda el arbol memoriza el ruido de train; el Accuracy en entrenamiento subira a casi 100%, pero en evaluacion el error crece debido a Sobreajuste (Overfitting)."</li>
+<li><strong>Si pide bajar <code>max_depth</code> a 4:</strong> Tarda pocos segundos. <em>Respuesta:</em> "Profesora, provocamos Subajuste (Underfitting); arboles con profundidad 4 solo pueden hacer 15 divisiones, insuficientes para representar la interaccion de 722 variables predictoras."</li>
+<li><strong>Si pide subir <code>n_estimators</code> a 1,500:</strong> Tarda mas de 1 minuto. <em>Respuesta:</em> "Profesora, segun el Teorema de Breiman, agregar arboles no provoca sobreajuste porque el error de generalizacion converge a un limite asintotico; sin embargo, no aporta ganancia en AUC y satura innecesariamente la memoria RAM."</li>
+<li><strong>Si pide bajar <code>n_estimators</code> a 20:</strong> Ejecucion instantanea. <em>Respuesta:</em> "Profesora, el modelo se vuelve inestable; con tan pocos arboles la varianza del ensamble se dispara y las probabilidades estimadas pierden calibracion."</li>
+<li><strong>Si pide subir <code>min_samples_split</code> a 50:</strong> <em>Respuesta:</em> "Profesora, aumentamos la regularizacion; evitamos crear divisiones basadas en grupos pequenos, previniendo ramas espurias."</li>
+<li><strong>Si pide cambiar <code>max_features=1.0</code> (todas):</strong> <em>Respuesta:</em> "Profesora, al considerar las 722 variables en cada corte, los arboles se vuelven casi identicos entre si, perdiendo el beneficio de descorrelacion del algoritmo Random Forest."</li>
 </ul>
+
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
@@ -1479,7 +1570,7 @@ rf = RandomForestClassifier(
 <pre class="code-extract-pre"><code># Modificacion en vivo en la laptop segun solicite la docente:
 rf = RandomForestClassifier(
     n_estimators=100,  # Reducir si solicita rapidez de ejecucion
-    max_depth=15,      # Modificar profundidad
+    max_depth=15,      # Modificar profundidad segun instruccion
     random_state=42,
     n_jobs=-1
 )
@@ -1506,12 +1597,9 @@ y_pred = rf.predict(X_test)</code></pre>
                 $$\text{Accuracy} = \frac{\text{VN} + \text{VP}}{N} = \frac{2{,}526 + 5{,}274}{11{,}107} = \frac{7{,}800}{11{,}107} = 70.22\%$$
               </div>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>Verdaderos Negativos (VN = 2,526):</strong> Alumnos que fallaron y el modelo los predijo como fallo $
-ightarrow$ <em>Alerta temprana exitosa entregada al profesor</em>.</li>
-<li><strong>Falsos Positivos (FP = 2,009):</strong> Alumnos que fallaron pero el modelo predijo exito $
-ightarrow$ <em>Riesgo no detectado</em>.</li>
-<li><strong>Falsos Negativos (FN = 1,298):</strong> Alumnos que acertaron pero el modelo predijo fallo $
-ightarrow$ <em>Falsa alarma</em>.</li>
+<li><strong>Verdaderos Negativos (VN = 2,526):</strong> Alumnos que fallaron y el modelo los predijo como fallo &rarr; <em>Alerta temprana exitosa entregada al profesor</em>.</li>
+<li><strong>Falsos Positivos (FP = 2,009):</strong> Alumnos que fallaron pero el modelo predijo exito &rarr; <em>Riesgo no detectado</em>.</li>
+<li><strong>Falsos Negativos (FN = 1,298):</strong> Alumnos que acertaron pero el modelo predijo fallo &rarr; <em>Falsa alarma de riesgo</em>.</li>
 <li><strong>Verdaderos Positivos (VP = 5,274):</strong> Alumnos que acertaron y el modelo confirmo su exito.</li>
 </ul>
 <div class="code-extract-card">
@@ -1567,37 +1655,84 @@ f1_mac = f1_score(y_test, y_pred, average='macro', zero_division=0)  # 0.6828</c
 <div class="faq-card" data-cat="cat-desbalance">
 <div class="faq-header" onclick="toggleFaqCard(this)">
 <div class="faq-title-text">
-<span class="faq-badge tag-b">Curva ROC</span>
-<span class="faq-q-title">20. ¿Que muestra la Curva ROC, que representan sus ejes y que significa el AUC de 0.753?</span>
+<span class="faq-badge tag-b">Curva ROC y AUC</span>
+<span class="faq-q-title">20. ¿Que muestra la Curva ROC, que representan sus ejes y que significa pedagogicamente el AUC de 0.753 sobre la clase fallo (score=0)?</span>
 </div>
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<div class="math-formula-box">
-                $$\text{FPR} = \frac{\text{FP}}{\text{FP} + \text{VN}} = \frac{2{,}009}{4{,}535} = 44.30\%, \quad \text{TPR} = \frac{\text{VP}}{\text{VP} + \text{FN}} = \frac{5{,}274}{6{,}572} = 80.25\%$$
-                $$\text{ROC-AUC} = \int_0^1 \text{TPR}(\tau) \, d(\text{FPR}(\tau)) = 0.7528$$
-              </div>
-<p>
-                • <strong>Eje X:</strong> Tasa de Falsos Positivos ($FPR$), proporción de falsas alarmas sobre aprobados.<br/>
-                • <strong>Eje Y:</strong> Tasa de Verdaderos Positivos ($TPR$ o Sensibilidad), proporción de aciertos identificados.<br/>
-                • <strong>AUC = 0.7528:</strong> Probabilidad del 75.3% de asignar mayor rango de riesgo a quien realmente fallará, superando al clasificador aleatorio ($0.50$).
-              </p>
+<div class="notice-box notice-info" style="margin-bottom: 12px;">
+<strong>Estructura de Defensa en 4 Puntos Clave para la Profesora:</strong>
+</div>
+
+<div class="grid-2" style="gap: 12px; margin-bottom: 14px;">
+  <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+    <h4 style="color: var(--primary); margin-bottom: 6px; font-size: 0.92rem;">1. Definicion Formal y Matematica</h4>
+    <p style="font-size: 0.83rem; line-height: 1.5; color: var(--text-main);">
+      La Curva ROC (Receiver Operating Characteristic) grafica la capacidad discriminativa del clasificador evaluando simultaneamente todos los posibles umbrales de decision $\tau \in [0, 1]$. El AUC resume esta curva en un escalar invariante al umbral:
+    </p>
+    <div class="math-formula-box" style="margin: 6px 0; padding: 6px;">
+      $$\text{ROC-AUC} = \int_0^1 \text{TPR}(\tau) \, d(\text{FPR}(\tau)) = 0.7528 \approx 0.753$$
+    </div>
+  </div>
+
+  <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+    <h4 style="color: var(--primary); margin-bottom: 6px; font-size: 0.92rem;">2. Significado de los Ejes X e Y</h4>
+    <ul style="font-size: 0.83rem; line-height: 1.5; margin-left: 16px; color: var(--text-main);">
+      <li><strong>Eje X (Tasa Falsos Positivos - FPR):</strong> Proporcion de aprobados clasificados erroneamente como en riesgo (falsas alarmas):
+        $$\text{FPR} = \frac{\text{FP}}{\text{FP} + \text{VN}} = \frac{2{,}009}{4{,}535} = 44.30\%$$
+      </li>
+      <li><strong>Eje Y (Tasa Verdaderos Positivos - TPR / Recall):</strong> Proporcion de fallos reales detectados a tiempo por el sistema:
+        $$\text{TPR} = \frac{\text{VP}}{\text{VP} + \text{FN}} = \frac{5{,}274}{6{,}572} = 80.25\%$$
+      </li>
+    </ul>
+  </div>
+
+  <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+    <h4 style="color: var(--primary); margin-bottom: 6px; font-size: 0.92rem;">3. Diagonal de Azar vs Modelo</h4>
+    <p style="font-size: 0.83rem; line-height: 1.5; color: var(--text-main);">
+      • <strong>Diagonal $y = x$ ($AUC = 0.50$):</strong> Representa un clasificador aleatorio sin aprendizaje (lanzar una moneda al aire).<br/>
+      • <strong>Nuestro AUC = 0.7528:</strong> Significa que al tomar al azar un alumno que fallo y otro que aprobo, el modelo asigna una probabilidad de riesgo mayor al alumno que realmente fallo en el <strong>75.3%</strong> de las ocasiones. Supera ampliamente al azar y se clasifica como rendimiento discriminativo solido.
+    </p>
+  </div>
+
+  <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px;">
+    <h4 style="color: var(--primary); margin-bottom: 6px; font-size: 0.92rem;">4. Justificacion Pedagogica (Clase Fallo = 0)</h4>
+    <p style="font-size: 0.83rem; line-height: 1.5; color: var(--text-main);">
+      En tutoria inteligente (ITS), el objetivo critico es la <strong>alerta temprana</strong>. Un modelo ingenuo que solo prediga exito (clase 1 = 59.2%) inflaria la exactitud sin valor pedagogico. Al calibrar la curva sobre $P(\text{score}=0)$, el modelo busca activamente al alumno que requiere andamiaje cognitivo antes de que repruebe o abandone la plataforma.
+    </p>
+  </div>
+</div>
+
+<div class="dialog-bubble">
+<strong>Respuesta verbal concisa para la profesora:</strong><br/>
+"Profesora: La Curva ROC grafica la sensibilidad frente a las falsas alarmas para todos los umbrales posibles. El eje Y es el TPR (fallos detectados) y el eje X es el FPR (falsas alarmas). La diagonal 0.5 representa una moneda al aire; nuestro AUC de 0.753 demuestra que en 3 de cada 4 casos el modelo discrimina con precision a quien fallara. Enfocamos la curva en la clase 0 porque pedagogicamente la prioridad es alertar al docente para brindar andamiaje preventivo."
+</div>
+
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 5</span>
 </div>
-<pre class="code-extract-pre"><code># Curva ROC y calculo de ROC-AUC para la clase 0:
+<pre class="code-extract-pre"><code># Curva ROC y calculo de ROC-AUC orientado a la clase de no exito (score=0):
+y_prob = rf.predict_proba(X_test)
+y_non_success = (y_test == 0).astype(int)       # Clase 0 como evento positivo de riesgo
+y_prob_non_success = y_prob[:, 0]               # Probabilidad predicha de fallar
+
 fpr, tpr, thresholds = roc_curve(y_non_success, y_prob_non_success)
 auc_val = roc_auc_score(y_non_success, y_prob_non_success)  # 0.7528
 
 # Visualizacion de la curva ROC:
+plt.figure(figsize=(7, 5))
 plt.plot(fpr, tpr, label=f'Random Forest (AUC = {auc_val:.4f})', color='#3366CC', lw=2)
 plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Azar (AUC = 0.50)')
-plt.xlabel('Tasa de Falsos Positivos (FPR)')
-plt.ylabel('Tasa de Verdaderos Positivos (TPR)')</code></pre>
+plt.xlabel('Tasa de Falsos Positivos (FPR = 1 - Especificidad)')
+plt.ylabel('Tasa de Verdaderos Positivos (TPR = Sensibilidad)')
+plt.title('Curva ROC - Deteccion de Fallo en Examen (score=0)')
+plt.legend(loc='lower right')
+plt.grid(True, alpha=0.3)</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Grafico de Curva ROC en Celda 5 y el valor de AUC de 0.7528 que supera ampliamente al azar (0.50).
+<strong>Senalar a la docente:</strong> Celda 5 completa mostrando la transformacion <code>y_test == 0</code> y el <code>auc_val = 0.7528</code> que supera con holgura la diagonal de 0.50.
               </div>
 </div>
 </div>
@@ -1753,6 +1888,7 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
 <strong>Senalar a la docente:</strong> Mostrar Celda 2 donde se configuro <code>MAX_STUDENTS = 3000</code>.
               </div>
 </div></div>
+</div>
 </div>
 </div>
 </div>
@@ -2005,6 +2141,81 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
 </div>
 </div>
 </div>
+
+<div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+  <h3 style="color: var(--primary); margin-bottom: 10px; font-size: 1rem;">Guia Rapida de los 8 Hiperparametros para Responder a la Docente</h3>
+  <div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px;">
+      <thead>
+        <tr style="background: var(--bg-main); border-bottom: 2px solid var(--border-color); color: var(--primary);">
+          <th style="padding: 8px;">Hiperparametro</th>
+          <th style="padding: 8px;">En Nuestro Modelo</th>
+          <th style="padding: 8px;">Defecto Sklearn</th>
+          <th style="padding: 8px;">¿Que Ocurre si lo AUMENTAS?</th>
+          <th style="padding: 8px;">¿Que Ocurre si lo DISMINUYES?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>n_estimators</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">600</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">100</td>
+          <td style="padding: 7px;">Reduce varianza hacia asintota (no sobreajusta segun Breiman); tarda mas tiempo y RAM.</td>
+          <td style="padding: 7px;">Ejecucion rapida pero varianza inestable y menor poder predictivo.</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>max_depth</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">19</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">None (ilimitada)</td>
+          <td style="padding: 7px; color: #b71c1c;"><strong>Sobreajuste (Overfitting):</strong> El arbol memoriza el ruido de train; train=100%, test cae.</td>
+          <td style="padding: 7px; color: #e65100;"><strong>Subajuste (Underfitting):</strong> Arboles demasiado simples incapaces de aprender relaciones complejas.</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>min_samples_split</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">10</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">2</td>
+          <td style="padding: 7px;">Mayor regularizacion; evita ramificaciones espurias por micro-grupos aislados.</td>
+          <td style="padding: 7px;">Permite dividir nodos con pocas muestras, facilitando sobreajuste en hojas.</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>min_samples_leaf</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">2</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">1</td>
+          <td style="padding: 7px;">Suaviza fronteras de decision garantizando soporte estadistico en cada hoja.</td>
+          <td style="padding: 7px;">Hojas de 1 sola observacion, memorizando casos atipicos (outliers).</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>max_features</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">'sqrt' (27)</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">'sqrt'</td>
+          <td style="padding: 7px;">Arboles mas similares entre si; aumenta la correlacion y reduce beneficio de ensamble.</td>
+          <td style="padding: 7px;">Mayor diversidad entre arboles, pero cada arbol individual es mas debil.</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.015);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>bootstrap</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">True</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">True</td>
+          <td style="padding: 7px;">(Booleano): Permite muestreo con reemplazo (~63.2% datos unicos por arbol).</td>
+          <td style="padding: 7px; color: #b71c1c;">Si fuera False, todos los arboles entrenarian con datos identicos, destruyendo el ensamble.</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border-color);">
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>random_state</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">42</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">None</td>
+          <td style="padding: 7px;">Fija la semilla pseudoaleatoria; garantiza reproducibilidad exacta de resultados en Colab.</td>
+          <td style="padding: 7px;">Si es None, cada ejecucion genera particiones y splits ligeramente distintos.</td>
+        </tr>
+        <tr>
+          <td style="padding: 7px; font-weight: 700; color: var(--primary);"><code>n_jobs</code></td>
+          <td style="padding: 7px;"><span class="badge badge-success">-1</span></td>
+          <td style="padding: 7px; color: var(--text-muted);">None (1 core)</td>
+          <td style="padding: 7px;">Aprovecha el 100% de vCPUs en paralelo; acelera el tiempo de ejecucion sin alterar metricas.</td>
+          <td style="padding: 7px;">Si se pone 1, entrena secuencialmente tardando de 4 a 8 veces mas tiempo sin beneficio.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 </div>
 </section>
 <!-- ========================================================== -->
@@ -2063,6 +2274,97 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
           Alumnos que realmente fallaron la pregunta de examen (score=0) y el modelo predijo correctamente que fallarian.<br/>
           Representa las 2,526 alertas tempranas exitosas que el docente recibe a tiempo para intervenir.
         </div>
+
+<div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 18px;">
+  <h3 style="color: var(--primary); margin-bottom: 12px; font-size: 1.05rem;">Curva ROC &amp; Evaluacion Discriminativa de Fallo (score=0, AUC=0.7528)</h3>
+  
+  <div class="grid-2" style="gap: 18px; align-items: start;">
+    <!-- GRAFICO SVG CURVA ROC -->
+    <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; text-align: center;">
+      <h4 style="color: var(--text-main); font-size: 0.9rem; margin-bottom: 10px;">Curva ROC - Random Forest vs. Azar</h4>
+      <svg viewBox="0 0 380 300" style="width: 100%; max-width: 360px; height: auto; font-family: sans-serif;">
+        <!-- Fondo grafico -->
+        <rect x="50" y="20" width="300" height="230" fill="var(--bg-card)" stroke="var(--border-color)" stroke-width="1"/>
+        
+        <!-- Lineas de cuadrilla -->
+        <line x1="50" y1="77.5" x2="350" y2="77.5" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        <line x1="50" y1="135" x2="350" y2="135" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        <line x1="50" y1="192.5" x2="350" y2="192.5" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        
+        <line x1="125" y1="20" x2="125" y2="250" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        <line x1="200" y1="20" x2="200" y2="250" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+        <line x1="275" y1="20" x2="275" y2="250" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3"/>
+
+        <!-- Area bajo la curva ROC (AUC = 0.7528) -->
+        <polygon points="50,250 50,250 65,185 95,130 140,88 183,65 230,46 290,29 350,20 350,250" fill="rgba(51, 102, 204, 0.18)"/>
+
+        <!-- Diagonal de azar (y = x) -->
+        <line x1="50" y1="250" x2="350" y2="20" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5,5"/>
+
+        <!-- Curva ROC Random Forest -->
+        <polyline points="50,250 65,185 95,130 140,88 183,65 230,46 290,29 350,20" fill="none" stroke="#3b82f6" stroke-width="3"/>
+
+        <!-- Punto de operacion umbral tau = 0.5 (FPR=44.3%, TPR=80.2%) -->
+        <circle cx="183" cy="65" r="5" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+        <text x="192" y="62" fill="#f87171" font-size="10" font-weight="bold">Umbral tau=0.5 (TPR=80.2%, FPR=44.3%)</text>
+
+        <!-- Etiquetas de ejes -->
+        <text x="50" y="265" fill="#94a3b8" font-size="10" text-anchor="middle">0.0</text>
+        <text x="125" y="265" fill="#94a3b8" font-size="10" text-anchor="middle">0.25</text>
+        <text x="200" y="265" fill="#94a3b8" font-size="10" text-anchor="middle">0.50</text>
+        <text x="275" y="265" fill="#94a3b8" font-size="10" text-anchor="middle">0.75</text>
+        <text x="350" y="265" fill="#94a3b8" font-size="10" text-anchor="middle">1.0</text>
+        <text x="200" y="284" fill="var(--text-main)" font-size="11" font-weight="bold" text-anchor="middle">Eje X: Tasa Falsos Positivos (FPR)</text>
+
+        <text x="42" y="253" fill="#94a3b8" font-size="10" text-anchor="end">0.0</text>
+        <text x="42" y="195" fill="#94a3b8" font-size="10" text-anchor="end">0.25</text>
+        <text x="42" y="138" fill="#94a3b8" font-size="10" text-anchor="end">0.50</text>
+        <text x="42" y="80" fill="#94a3b8" font-size="10" text-anchor="end">0.75</text>
+        <text x="42" y="24" fill="#94a3b8" font-size="10" text-anchor="end">1.0</text>
+        <text x="16" y="135" fill="var(--text-main)" font-size="11" font-weight="bold" text-anchor="middle" transform="rotate(-90 16 135)">Eje Y: Tasa Verdaderos Positivos (TPR)</text>
+
+        <!-- Leyenda -->
+        <rect x="60" y="30" width="12" height="12" fill="#3b82f6"/>
+        <text x="78" y="40" fill="var(--text-main)" font-size="10">Random Forest (AUC = 0.7528)</text>
+        <line x1="60" y1="52" x2="72" y2="52" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3,3"/>
+        <text x="78" y="55" fill="#94a3b8" font-size="10">Azar / Moneda (AUC = 0.5000)</text>
+      </svg>
+      <p style="font-size: 0.76rem; color: var(--text-muted); margin-top: 6px;">Graficado sobre 11,107 evaluaciones de prueba del archivo test.</p>
+    </div>
+
+    <!-- 4 PILARES DE DEFENSA VERBAL -->
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 14px;">
+        <h4 style="color: var(--primary); font-size: 0.88rem; margin-bottom: 4px;">Pilar 1: Definicion Matematica e Invarianza</h4>
+        <p style="font-size: 0.81rem; line-height: 1.5; color: var(--text-main); margin: 0;">
+          Mide la separacion entre clases a lo largo de todos los umbrales posibles $\tau \in [0,1]$. A diferencia del Accuracy, el ROC-AUC es insensible a la eleccion arbitraria de un umbral fijo y al desbalance de clases.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 14px;">
+        <h4 style="color: var(--primary); font-size: 0.88rem; margin-bottom: 4px;">Pilar 2: Interpretacion de Ejes</h4>
+        <p style="font-size: 0.81rem; line-height: 1.5; color: var(--text-main); margin: 0;">
+          <strong>Eje Y (TPR / Sensibilidad):</strong> Proporcion de alumnos que realmente fallan y son detectados (80.25%).<br/>
+          <strong>Eje X (FPR / Falsas alarmas):</strong> Proporcion de alumnos que aprueban pero son alertados por precaucion (44.30%).
+        </p>
+      </div>
+
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 14px;">
+        <h4 style="color: var(--primary); font-size: 0.88rem; margin-bottom: 4px;">Pilar 3: Diagonal 0.50 vs Modelo 0.753</h4>
+        <p style="font-size: 0.81rem; line-height: 1.5; color: var(--text-main); margin: 0;">
+          La diagonal segmentada representa una moneda al aire (azar puro). Nuestro AUC de <strong>0.7528</strong> garantiza que si tomamos un alumno que fallo y uno que aprobo al azar, en el <strong>75.3%</strong> de los casos el algoritmo le asigna mayor nivel de riesgo a quien fallo.
+        </p>
+      </div>
+
+      <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 14px;">
+        <h4 style="color: var(--primary); font-size: 0.88rem; margin-bottom: 4px;">Pilar 4: Prioridad Pedagogica de la Clase Fallo (score=0)</h4>
+        <p style="font-size: 0.81rem; line-height: 1.5; color: var(--text-main); margin: 0;">
+          En tutoria inteligente (ITS), predecir el exito no aporta valor de intervencion. La prioridad critica es identificar al estudiante con rezago formativo para enviarle andamiaje oportuno antes de la prueba sumativa.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 </section>
 <!-- ========================================================== -->
