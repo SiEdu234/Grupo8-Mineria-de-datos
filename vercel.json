@@ -19,6 +19,16 @@
       "source": "/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html",
       "destination": "/basura/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html",
       "permanent": false
+    },
+    {
+      "source": "/guia",
+      "destination": "/basura/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
+      "permanent": false
+    },
+    {
+      "source": "/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
+      "destination": "/basura/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
+      "permanent": false
     }
   ]
 }

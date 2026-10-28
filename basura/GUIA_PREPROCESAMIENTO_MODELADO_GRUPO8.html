@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guia Maestra: Preprocesamiento, Transformacion, Reglas de Arboles e Hiperparametros | Grupo 8</title>
+  
+  <!-- KaTeX para renderizado de formulas matematicas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0b1120;
+      --bg-card: #0f172a;
+      --bg-card-alt: #1e293b;
+      --bg-code: #030712;
+      --border: #1e293b;
+      --border-accent: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --accent: #818cf8;
+      --purple: #c084fc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 70px;
+    }
+
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title-group h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .title-group p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nav-link-btn {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link-btn:hover {
+      background: var(--primary);
+      color: #030712;
+    }
+
+    .nav-link-btn.btn-accent {
+      background: rgba(52, 211, 153, 0.12);
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .nav-link-btn.btn-accent:hover {
+      background: var(--success);
+      color: #030712;
+    }
+
+    /* Sub-barra de navegacion interna por modulos */
+    .module-nav {
+      background: #0f172a;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      position: sticky;
+      top: 61px;
+      z-index: 90;
+    }
+
+    .mod-tab {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mod-tab:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .mod-tab.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #030712;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+    }
+
+    .section-module {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .section-module.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 850px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Caja de respuesta verbal para el examen */
+    .speech-box {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 4px solid var(--primary);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .speech-box strong {
+      color: var(--primary);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+
+    .notice-box {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    .notice-warning {
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid var(--warning);
+      color: #fef08a;
+    }
+
+    .notice-info {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--primary);
+      color: #bae6fd;
+    }
+
+    .notice-success {
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid var(--success);
+      color: #a7f3d0;
+    }
+
+    /* Tarjeta de codigo real con ubicacion */
+    .code-box {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 16px 0;
+      overflow: hidden;
+    }
+
+    .code-box-header {
+      background: #020617;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .code-file {
+      color: var(--primary);
+    }
+
+    .code-cell {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      color: #cbd5e1;
+    }
+
+    .code-box pre {
+      padding: 14px;
+      overflow-x: auto;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    .code-box-footer {
+      background: #090e1a;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .code-box-footer strong {
+      color: var(--success);
+    }
+
+    /* Formula matematica */
+    .math-formula-box {
+      background: #090e1a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      overflow-x: auto;
+      text-align: center;
+      color: #f1f5f9;
+    }
+
+    /* Tablas de hiperparametros y metricas */
+    .table-container {
+      overflow-x: auto;
+      margin: 16px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg-dark);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .badge-primary { background: rgba(56, 189, 248, 0.2); color: var(--primary); }
+    .badge-success { background: rgba(52, 211, 153, 0.2); color: var(--success); }
+    .badge-warning { background: rgba(251, 191, 36, 0.2); color: var(--warning); }
+    .badge-danger { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+    /* Acordeones interactivos */
+    .faq-card {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .faq-header {
+      padding: 14px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .faq-header:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .faq-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .faq-icon {
+      font-size: 1.1rem;
+      color: var(--primary);
+      transition: transform 0.2s;
+    }
+
+    .faq-body {
+      padding: 0 18px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out, padding 0.3s ease;
+      background: #0d1527;
+      border-top: 1px solid transparent;
+      font-size: 0.86rem;
+      line-height: 1.6;
+    }
+
+    .faq-body.open {
+      padding: 16px 18px;
+      max-height: 1000px;
+      border-top-color: var(--border);
+    }
+
+    .diagram-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+      background: var(--bg-dark);
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .step-number {
+      background: var(--primary);
+      color: #030712;
+      font-weight: 800;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="title-group">
+      <h1>Guia Tecnica de Explicacion: Preprocesamiento y Modelado</h1>
+      <p>Grupo 8 | Caso de Estudio ASSISTments EDM Cup 2023 | Random Forest Classifier</p>
+    </div>
+    <div class="header-actions">
+      <a href="DASHBOARD_DEFENSA_ORAL_GRUPO8.html" class="nav-link-btn">
+        Dashboard Principal
+      </a>
+      <a href="INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html" class="nav-link-btn btn-accent">
+        Inspector Datos Crudos
+      </a>
+    </div>
+  </header>
+
+  <!-- SUB-BARRA DE NAVEGACION POR MODULOS -->
+  <nav class="module-nav">
+    <button class="mod-tab active" onclick="switchModule('mod-preprocesamiento')">1. Preprocesamiento</button>
+    <button class="mod-tab" onclick="switchModule('mod-transformacion')">2. Transformacion</button>
+    <button class="mod-tab" onclick="switchModule('mod-reglas-arboles')">3. Reglas de Arboles</button>
+    <button class="mod-tab" onclick="switchModule('mod-modelado')">4. Modelado &amp; Particion</button>
+    <button class="mod-tab" onclick="switchModule('mod-hiperparametros')">5. 8 Hiperparametros</button>
+    <button class="mod-tab" onclick="switchModule('mod-preguntas-verbales')">6. Respuestas en Vivo (Docente)</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ========================================================== -->
+    <!-- MODULO 1: PREPROCESAMIENTO DE DATOS                        -->
+    <!-- ========================================================== -->
+    <section id="mod-preprocesamiento" class="section-module active">
+      <div class="card">
+        <h2 class="card-title">1. Preprocesamiento de Datos (Limpieza e Integridad)</h2>
+        <p class="card-subtitle">Ubicacion: Cuaderno <code>ASSISTments_01_Preparar_CSV.ipynb</code> • Celdas 2, 4 y 6</p>
+
+        <div class="speech-box">
+          <strong>Como explicarlo a la profesora en 30 segundos:</strong>
+          "Profesora: El preprocesamiento consistio en unificar identificadores para evitar fallos de cruce por corrupcion de Excel, filtrar unicamente evaluaciones con etiquetas validas de examen (0 y 1), aplicar muestreo reproducible por bloques para no agotar la RAM de Colab, y ejecutar una politica dual de imputacion: 0 para acciones no realizadas y -1 para valores generales ausentes, permitiendo que el algoritmo Random Forest cree ramas de decision exclusivas para nulos sin distorsionar la distribucion."
+        </div>
+
+        <div class="grid-2">
+          <!-- Columna 1: Normalizacion de IDs -->
+          <div>
+            <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">A. Normalizacion de IDs (Evitar Corrupcion de Excel)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+              Excel acostumbra interpretar codigos alfanumericos como numeros decimales, agregando <code>.0</code> al final o espacios invisibles. Esto rompe los cruces relacionales entre tablas.
+            </p>
+            <div class="code-box">
+              <div class="code-box-header">
+                <span class="code-file">ASSISTments_01_Preparar_CSV.ipynb</span>
+                <span class="code-cell">Celda 4</span>
+              </div>
+              <pre><code>def normalize_id(values):
+    """Unifica IDs leidos como entero, decimal o texto sin alterar su contenido."""
+    return (values.astype('string').str.strip()
+            .str.replace(r'\.0$', '', regex=True))</code></pre>
+              <div class="code-box-footer">
+                <strong>Senalar:</strong> Convierte a string, elimina espacios externos y borra el artefacto <code>.0</code>.
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna 2: Muestreo y RAM -->
+          <div>
+            <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">B. Muestreo Reproducible y Manejo de RAM</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+              El archivo crudo <code>action_logs.csv</code> tiene mas de 30 millones de filas. Para entrenar en Google Colab sin colapsar la memoria, se proceso por bloques y se fijo una muestra de 3,000 estudiantes.
+            </p>
+            <div class="code-box">
+              <div class="code-box-header">
+                <span class="code-file">ASSISTments_01_Preparar_CSV.ipynb</span>
+                <span class="code-cell">Celda 2</span>
+              </div>
+              <pre><code>SEED = 42
+MAX_STUDENTS = 3000   # Muestra reproducible controlada
+CHUNK_SIZE = 300_000  # Procesa acciones por bloques de 300k filas
+
+# Lectura por bloques en Celda 6:
+for chunk_number, action_chunk in enumerate(pd.read_csv(
+    action_path, usecols=action_columns, chunksize=CHUNK_SIZE
+), start=1):
+    action_chunk = action_chunk[action_chunk['assignment_log_id'].isin(in_unit_ids)]</code></pre>
+              <div class="code-box-footer">
+                <strong>Senalar:</strong> <code>SEED=42</code> garantiza reproducibilidad identica en cada ejecucion.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 18px;">
+          <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">C. Politica Dual de Imputacion (Valores Ausentes)</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+            En este proyecto <strong>no se utilizo un promedio simple</strong> para rellenar nulos, sino una justificacion tecnica y pedagogica segun la naturaleza de la columna:
+          </p>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tipo de Variable</th>
+                  <th>Valor Imputado</th>
+                  <th>Codigo Aplicado (Celda 6)</th>
+                  <th>Justificacion Matematica / Pedagogica</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Acciones del Alumno</strong><br/>(clics, pistas solicitadas, respuestas)</td>
+                  <td><span class="badge badge-success">0</span></td>
+                  <td><code>dataset[action_feature_columns] = dataset[action_feature_columns].fillna(0)</code></td>
+                  <td>La ausencia de registro en el log significa que el alumno <strong>no realizo</strong> esa accion (conteo real = 0).</td>
+                </tr>
+                <tr>
+                  <td><strong>Variables Numericas Generales</strong> e Infinitos</td>
+                  <td><span class="badge badge-warning">-1</span></td>
+                  <td><code>dataset = dataset.replace([np.inf, -np.inf], np.nan)<br/>dataset[feature_columns] = dataset[feature_columns].fillna(-1).astype('float32')</code></td>
+                  <td>Permite que los arboles de Random Forest aislen los valores nulos en una rama exclusiva ($x_j \le -0.5$) sin alterar la media.</td>
+                </tr>
+                <tr>
+                  <td><strong>Variables Categoricas</strong> (rutas curriculares, tipo problema)</td>
+                  <td><span class="badge badge-primary">'na'</span></td>
+                  <td><code>clean_text(dataset[col]).replace('', 'na').fillna('na')</code></td>
+                  <td>Se codifica como una categoria explicita en One-Hot Encoding antes de convertirla a dummies binarios.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 2: TRANSFORMACION DE CARACTERISTICAS                -->
+    <!-- ========================================================== -->
+    <section id="mod-transformacion" class="section-module">
+      <div class="card">
+        <h2 class="card-title">2. Transformacion e Ingenieria de Caracteristicas</h2>
+        <p class="card-subtitle">Ubicacion: Cuaderno <code>ASSISTments_01_Preparar_CSV.ipynb</code> • Celda 6</p>
+
+        <div class="speech-box">
+          <strong>Punto critico para la defensa (Codificacion vs Normalizacion):</strong>
+          "Profesora: Lo que realizamos para convertir texto a numeros es <strong>Codificacion</strong> (especificamente One-Hot Encoding), no normalizacion matematica. En nuestro modelo <strong>NO aplicamos StandardScaler</strong> porque Random Forest es un algoritmo basado en arboles de decision que evalua cortes individuales por impureza Gini, siendo completamente invariante a transformaciones monotonicas de escala."
+        </div>
+
+        <div class="grid-2">
+          <!-- One-Hot Encoding -->
+          <div>
+            <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">A. One-Hot Encoding (pd.get_dummies)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+              Convierte categorias nominales de la ruta curricular y de problemas en variables binarias $0/1$:
+            </p>
+            <div class="code-box">
+              <div class="code-box-header">
+                <span class="code-file">ASSISTments_01_Preparar_CSV.ipynb</span>
+                <span class="code-cell">Celda 6</span>
+              </div>
+              <pre><code># 1. Dummies de secuencia curricular (niveles 1 a 4):
+sequence_dummies = pd.get_dummies(
+    dataset[sequence_fields], prefix=sequence_fields, dtype=np.uint8
+)
+dataset = pd.concat([dataset.drop(columns=sequence_fields + ['sequence_id']), sequence_dummies], axis=1)
+
+# 2. Dummies de categoricas del problema y habilidad:
+problem_dummies = pd.get_dummies(
+    dataset[problem_categories], prefix=problem_categories, dtype=np.uint8
+)</code></pre>
+              <div class="code-box-footer">
+                <strong>Senalar:</strong> Convierte texto en columnas binarias $\{0, 1\}$ tipo <code>uint8</code> para ahorrar memoria.
+              </div>
+            </div>
+          </div>
+
+          <!-- Embeddings BERT -->
+          <div>
+            <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">B. Parseo de Embeddings BERT (32 Componentes)</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+              El texto del problema fue procesado previamente con un modelo de lenguaje BERT reducido por PCA a 32 dimensiones continuas:
+            </p>
+            <div class="code-box">
+              <div class="code-box-header">
+                <span class="code-file">ASSISTments_01_Preparar_CSV.ipynb</span>
+                <span class="code-cell">Celda 6</span>
+              </div>
+              <pre><code>def parse_bert_vector(value, width=32):
+    result = np.full(width, np.nan, dtype=np.float32)
+    if pd.isna(value):
+        return result
+    numbers = re.findall(r'[-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?', str(value))
+    try:
+        parsed = np.asarray([float(x) for x in numbers[:width]], dtype=np.float32)
+    except ValueError:
+        return result
+    result[:len(parsed)] = parsed
+    return result
+
+bert_matrix = np.vstack(dataset['problem_text_bert_pca'].map(parse_bert_vector).to_numpy())</code></pre>
+              <div class="code-box-footer">
+                <strong>Senalar:</strong> Genera 32 variables continuas (<code>problem_text_bert_pca_0</code> a <code>31</code>) en <code>float32</code>.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ratios y agregaciones -->
+        <div style="margin-top: 18px;">
+          <h3 style="color: var(--primary); font-size: 1rem; margin-bottom: 8px;">C. Variables Agregadas y Frecuencias</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">
+            Ademas de las acciones brutas, se calcularon ratios contextuales de persistencia y estructura:
+          </p>
+          <div class="code-box">
+            <div class="code-box-header">
+              <span class="code-file">ASSISTments_01_Preparar_CSV.ipynb</span>
+              <span class="code-cell">Celda 6</span>
+            </div>
+            <pre><code># Frecuencia de multipart_id (cuantas veces aparece un problema compuesto):
+multipart_frequency = dataset['problem_multipart_id'].value_counts(dropna=False)
+dataset['multipart_id_frequency'] = dataset['problem_multipart_id'].map(multipart_frequency).fillna(0)
+
+# Porcentaje de practicas formativas no terminadas:
+assignment_stats['notfinish_percent'] = (
+    assignment_stats['unfinished_practice'] / assignment_stats['total_practice'].replace(0, np.nan)
+).round(4)</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 3: REGLAS DE LOS ARBOLES                            -->
+    <!-- ========================================================== -->
+    <section id="mod-reglas-arboles" class="section-module">
+      <div class="card">
+        <h2 class="card-title">3. Reglas de los Arboles de Decision (Matematicas del Modelo)</h2>
+        <p class="card-subtitle">Fundamento teorico y algebraico de como decide Random Forest</p>
+
+        <div class="speech-box">
+          <strong>Como explicar la toma de decisiones de un arbol:</strong>
+          "Profesora: Cada arbol de decision realiza divisiones binarias recursivas del tipo $x_j \le c$. En cada nodo interno, el algoritmo evalua todas las variables candidatas y busca el punto de corte $c$ que maximice la reduccion de impureza Gini ($\Delta Gini$). Los arboles no generan formulas algebraicas lineales continuas, sino un conjunto jerarquico de reglas condicionales Si-Entonces (If-Else) sobre las caracteristicas de interaccion del alumno."
+        </div>
+
+        <!-- 3 Pasos del Arbol -->
+        <div class="diagram-step">
+          <div class="step-number">1</div>
+          <div style="flex-grow: 1;">
+            <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 4px;">Regla de Bifurcacion Binaria (Condicion de Corte)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              En cada nodo $t$, el arbol elige una variable $x_j$ y un umbral $c$:
+            </p>
+            <div class="math-formula-box">
+              $$\text{Si } x_j \le c \implies \text{Hijo Izquierdo } t_L; \quad \text{Si } x_j > c \implies \text{Hijo Derecho } t_R$$
+            </div>
+          </div>
+        </div>
+
+        <div class="diagram-step">
+          <div class="step-number">2</div>
+          <div style="flex-grow: 1;">
+            <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 4px;">Criterio de Impureza de Gini</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Mide el grado de mezcla de clases en el nodo ($k \in \{0, 1\}$). Si el nodo es 100% puro (todos fallaron o todos acertaron), $Gini = 0$:
+            </p>
+            <div class="math-formula-box">
+              $$Gini(t) = 1 - \sum_{k=0}^1 p_k^2 = 1 - (p_0^2 + p_1^2)$$
+            </div>
+            <p style="font-size: 0.82rem; color: #cbd5e1;">
+              • <strong>Nodo completamente puro:</strong> $p_0=1, p_1=0 \implies Gini = 1 - (1^2 + 0^2) = 0.0$<br/>
+              • <strong>Nodo en maxima incertidumbre (50/50):</strong> $p_0=0.5, p_1=0.5 \implies Gini = 1 - (0.25 + 0.25) = 0.5$
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-step">
+          <div class="step-number">3</div>
+          <div style="flex-grow: 1;">
+            <h4 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 4px;">Ganancia de Informacion / Reduccion de Impureza ($\Delta Gini$)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              El algoritmo elige el corte $(j, c)$ que produzca la mayor caida de impureza ponderada por el tamano de los hijos:
+            </p>
+            <div class="math-formula-box">
+              $$\Delta Gini(s, t) = Gini(t) - \left[ \frac{N_L}{N_t} Gini(t_L) + \frac{N_R}{N_t} Gini(t_R) \right]$$
+            </div>
+          </div>
+        </div>
+
+        <!-- Preguntas matematicas clave -->
+        <div class="grid-2" style="margin-top: 14px;">
+          <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <h4 style="color: var(--warning); font-size: 0.9rem; margin-bottom: 6px;">¿Por que es Invariante a Escala (Sin StandardScaler)?</h4>
+            <p style="font-size: 0.82rem; line-height: 1.5; color: var(--text-muted);">
+              A diferencia de una regresion logistica o red neuronal (donde las variables grandes dominan los pesos $w$), un arbol evalua cada variable por separado. Como la particion $x_j \le c$ depende unicamente del <strong>orden relativo de los datos</strong>, aplicar estandarizacion matematica desplaza la constante $c$ pero produce <em>exactamente el mismo split</em>.
+            </p>
+          </div>
+
+          <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <h4 style="color: var(--success); font-size: 0.9rem; margin-bottom: 6px;">¿Como Maneja el Arbol el Valor Imputado -1?</h4>
+            <p style="font-size: 0.82rem; line-height: 1.5; color: var(--text-muted);">
+              Como todas las variables reales de conteo o ratios son $\ge 0$, el arbol puede colocar un corte simple como $x_j \le -0.5$. Todos los casos ausentes caen juntos en el hijo izquierdo, aprendiendo una regla propia de riesgo para alumnos sin datos sin distorsionar los datos positivos.
+            </p>
+          </div>
+        </div>
+
+        <div style="background: rgba(129, 140, 248, 0.08); border: 1px solid var(--accent); border-radius: 8px; padding: 14px; margin-top: 16px;">
+          <h4 style="color: var(--accent); font-size: 0.9rem; margin-bottom: 6px;">Principio de Ensamble de Leo Breiman (Bagging + Random Subspace)</h4>
+          <p style="font-size: 0.83rem; line-height: 1.5; color: #cbd5e1;">
+            Un solo arbol de decision tiene alta varianza (tiende a sobreajustar). Random Forest resuelve esto mediante dos reglas clave:<br/>
+            1. <strong>Bootstrap Aggregating:</strong> Cada arbol se entrena con un remuestreo aleatorio con reemplazo de tamano $N$ (~63.2% de datos unicos).<br/>
+            2. <strong>Subespacio Aleatorio:</strong> En cada nodo solo se prueban $m = \lfloor \sqrt{722} \rfloor = 27$ variables aleatorias para obligar a los arboles a explorar senales distintas.<br/>
+            3. <strong>Voto de Mayoría / Promedio:</strong> La probabilidad final es el promedio de las hojas terminales de los 600 arboles:
+          </p>
+          <div class="math-formula-box" style="margin: 8px 0; padding: 6px;">
+            $$P(Y = k \mid x) = \frac{1}{B} \sum_{b=1}^{B} P_b(Y = k \mid x), \quad B = 600$$
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 4: MODELADO & PARTICION                             -->
+    <!-- ========================================================== -->
+    <section id="mod-modelado" class="section-module">
+      <div class="card">
+        <h2 class="card-title">4. Modelado y Particion de Datos</h2>
+        <p class="card-subtitle">Ubicacion: Cuaderno <code>ASSISTments_RF_Colab_ES.ipynb</code> • Celda 4</p>
+
+        <div class="speech-box">
+          <strong>Como explicar la particion y el entrenamiento:</strong>
+          "Profesora: El conjunto de datos contiene 722 variables predictoras numericas ($X$) y la variable objetivo binaria <code>score</code> ($Y \in \{0, 1\}$). Excluimos estrictamente los identificadores (ID de estudiante y problema) para evitar que el algoritmo memorice alumnos especificos en lugar de aprender patrones pedagogicos. La particion utilizada fue la division original del concurso: 39,935 evaluaciones para Entrenamiento ('train') y 11,107 para Evaluacion ('evaluation')."
+        </div>
+
+        <div class="code-box">
+          <div class="code-box-header">
+            <span class="code-file">ASSISTments_RF_Colab_ES.ipynb</span>
+            <span class="code-cell">Celda 4 • Lineas 8-36</span>
+          </div>
+          <pre><code># 1. EXCLUSION DE IDENTIFICADORES (EVITAR DATA LEAKAGE / MEMORIZACION):
+id_columns = {
+    'score', 'student_id', 'source_split',
+    'unit_test_assignment_log_id', 'problem_id'
+}
+feature_columns = [column for column in df.columns if column not in id_columns]
+
+X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
+y = pd.to_numeric(df['score'], errors='coerce')
+labeled = y.notna() & y.isin([0, 1])
+
+df = df.loc[labeled].reset_index(drop=True)
+X = X.loc[labeled].reset_index(drop=True)
+y = y.loc[labeled].astype('int8').reset_index(drop=True)
+
+# 2. PARTICION ORIGINAL DEL CASO DE ESTUDIO (TRAIN / EVALUATION):
+train_mask = df['source_split'].eq('train')      # 39,935 filas
+eval_mask = df['source_split'].eq('evaluation')  # 11,107 filas
+
+train_idx = np.flatnonzero(train_mask.to_numpy())
+test_idx = np.flatnonzero(eval_mask.to_numpy())
+
+X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+y_train, y_test = y.iloc[train_idx].to_numpy(), y.iloc[test_idx].to_numpy()
+
+# 3. ENTRENAMIENTO DEL MODELO:
+rf.fit(X_train, y_train)
+
+# 4. SALIDA: PREDICCION DISCRETA Y PROBABILIDADES CONTINUAS:
+y_pred = rf.predict(X_test)                  # Clases 0 o 1
+probabilities = rf.predict_proba(X_test)     # Probabilidades [P(score=0), P(score=1)]</code></pre>
+          <div class="code-box-footer">
+            <strong>Senalar a la docente:</strong> Entrada $X$ con 722 caracteristicas, Proceso <code>rf.fit(X_train, y_train)</code> y Salida con <code>predict</code> y <code>predict_proba</code>.
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 14px;">
+          <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <h4 style="color: var(--primary); font-size: 0.9rem; margin-bottom: 6px;">Distribucion Fisica en Excel (assistments_rf_dataset.csv)</h4>
+            <ul style="font-size: 0.82rem; line-height: 1.7; margin-left: 16px; color: var(--text-muted);">
+              <li><strong>Columna A:</strong> <code>student_id</code> (Identificador de alumno, excluido de X).</li>
+              <li><strong>Columna B:</strong> <code>unit_test_assignment_log_id</code> (ID de sesion, excluido).</li>
+              <li><strong>Columna C:</strong> <code>score</code> (Variable Dependiente $Y \in \{0, 1\}$).</li>
+              <li><strong>Columna D:</strong> <code>problem_id</code> (Identificador de la pregunta, excluido).</li>
+              <li><strong>Columna E:</strong> <code>source_split</code> (Filas 1-40955 train, 40956+ evaluation).</li>
+              <li><strong>Columna F en adelante:</strong> 722 variables predictoras numéricas $X$ (<code>float32</code>).</li>
+            </ul>
+          </div>
+
+          <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <h4 style="color: var(--success); font-size: 0.9rem; margin-bottom: 6px;">¿Por que no entrenar con el 100% de unit_test_scores.csv?</h4>
+            <p style="font-size: 0.82rem; line-height: 1.6; color: var(--text-muted);">
+              Porque en Machine Learning es una regla inviolable <strong>no evaluar un modelo con los mismos datos con los que aprendio</strong>. Si entrenaramos con el archivo maestro de ~576,000 registros, el modelo simplemente memorizaria las notas de los alumnos (Sobreajuste / Overfitting). Los organizadores del concurso ocultaron ~124,000 registros de prueba para medir si el algoritmo verdaderamente generaliza ante estudiantes nuevos.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 5: LOS 8 HIPERPARAMETROS                            -->
+    <!-- ========================================================== -->
+    <section id="mod-hiperparametros" class="section-module">
+      <div class="card">
+        <h2 class="card-title">5. Los 8 Hiperparametros Configurados en Scikit-Learn</h2>
+        <p class="card-subtitle">Ubicacion: Cuaderno <code>ASSISTments_RF_Colab_ES.ipynb</code> • Celda 4 • Lineas 22-31</p>
+
+        <div class="code-box">
+          <div class="code-box-header">
+            <span class="code-file">ASSISTments_RF_Colab_ES.ipynb</span>
+            <span class="code-cell">Celda 4 • Constructor Real</span>
+          </div>
+          <pre><code>rf = RandomForestClassifier(
+    n_estimators=N_ESTIMATORS,  # 600 arboles (estabilidad en probabilidades, vs 100 por defecto)
+    max_depth=19,            # Poda a profundidad 19 (evita sobreajuste, vs None por defecto)
+    min_samples_split=10,    # Minimo 10 muestras para dividir un nodo (vs 2 por defecto)
+    min_samples_leaf=2,      # Minimo 2 muestras por hoja terminal (vs 1 por defecto)
+    max_features='sqrt',     # Breiman: floor(sqrt(722)) = 27 variables aleatorias por nodo
+    bootstrap=True,          # Remuestreo con reemplazo para cada arbol (~63.2% datos)
+    random_state=SEED,       # Semilla 42 (reproducibilidad cientifica exacta)
+    n_jobs=-1                # Paralelizacion en todos los nucleos CPU disponibles
+)</code></pre>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Hiperparametro</th>
+                <th>Valor Usado</th>
+                <th>Defecto Sklearn</th>
+                <th>Funcion Principal</th>
+                <th>¿Que pasa si se AUMENTA?</th>
+                <th>¿Que pasa si se DISMINUYE?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>n_estimators</code></td>
+                <td><span class="badge badge-success">600</span></td>
+                <td>100</td>
+                <td>Numero de arboles independientes construidos en el ensamble.</td>
+                <td>Reduce varianza hacia una asintota (Teorema de Breiman: no sobreajusta); eleva tiempo y consumo de RAM.</td>
+                <td>Entrenamiento veloz, pero mayor varianza e inestabilidad en las probabilidades estimadas.</td>
+              </tr>
+              <tr style="background: rgba(0,0,0,0.02);">
+                <td><code>max_depth</code></td>
+                <td><span class="badge badge-success">19</span></td>
+                <td>None (infinita)</td>
+                <td>Limite maximo de profundidad desde la raiz hasta las hojas terminales (poda).</td>
+                <td style="color: #f87171;"><strong>Sobreajuste (Overfitting):</strong> El arbol crece hasta hojas puras memorizando ruido; train=100%, test cae.</td>
+                <td style="color: #fbbf24;"><strong>Subajuste (Underfitting):</strong> Arboles demasiado cortos incapaces de aprender interacciones no lineales complejas.</td>
+              </tr>
+              <tr>
+                <td><code>min_samples_split</code></td>
+                <td><span class="badge badge-success">10</span></td>
+                <td>2</td>
+                <td>Numero minimo de observaciones en un nodo para intentar una nueva division.</td>
+                <td>Mayor regularizacion; impide bifurcaciones provocadas por grupos pequenos aislados.</td>
+                <td>Permite dividir nodos con pocas observaciones (hasta 2), favoreciendo sobreajuste en hojas.</td>
+              </tr>
+              <tr style="background: rgba(0,0,0,0.02);">
+                <td><code>min_samples_leaf</code></td>
+                <td><span class="badge badge-success">2</span></td>
+                <td>1</td>
+                <td>Numero minimo de datos exigidos en cada hoja terminal.</td>
+                <td>Suaviza fronteras de decision garantizando soporte estadistico en cada hoja.</td>
+                <td>Permite hojas de 1 solo dato, memorizando observaciones atipicas (outliers).</td>
+              </tr>
+              <tr>
+                <td><code>max_features</code></td>
+                <td><span class="badge badge-success">'sqrt' (27)</span></td>
+                <td>'sqrt'</td>
+                <td>Variables candidatas evaluadas al buscar el mejor corte: $$m = \lfloor \sqrt{722} \rfloor = 27$$</td>
+                <td>Arboles mas parecidos entre si; aumenta la correlacion inter-arbol y reduce la ganancia de Bagging.</td>
+                <td>Mayor diversidad entre arboles, pero cada arbol individual es ligeramente mas debil.</td>
+              </tr>
+              <tr style="background: rgba(0,0,0,0.02);">
+                <td><code>bootstrap</code></td>
+                <td><span class="badge badge-success">True</span></td>
+                <td>True</td>
+                <td>Muestreo con reemplazo de tamano $N$ para cada arbol (~63.2% datos unicos).</td>
+                <td>(Booleano): Garantiza diversidad estructural, base fundamental del algoritmo Random Forest.</td>
+                <td style="color: #f87171;">Si fuera False, todos los arboles tendrian datos identicos, destruyendo el ensamble.</td>
+              </tr>
+              <tr>
+                <td><code>random_state</code></td>
+                <td><span class="badge badge-success">42</span></td>
+                <td>None</td>
+                <td>Semilla pseudoaleatoria fija para bootstrap y seleccion de variables.</td>
+                <td>Fija el estado de aleatoriedad; garantiza que cualquier persona obtenga exactamente los mismos resultados.</td>
+                <td>Si es None, cada corrida genera arboles y metricas con ligeras variaciones estocasticas.</td>
+              </tr>
+              <tr style="background: rgba(0,0,0,0.02);">
+                <td><code>n_jobs</code></td>
+                <td><span class="badge badge-success">-1</span></td>
+                <td>None (1 core)</td>
+                <td>Cantidad de nucleos CPU para paralelizar la construccion de los 600 arboles.</td>
+                <td>Aprovecha el 100% de vCPUs en paralelo; acelera el tiempo sin alterar los calculos matematicos.</td>
+                <td>Si se pone 1, ejecuta en un solo hilo secuencial tardando de 4 a 8 veces mas tiempo sin beneficio.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================== -->
+    <!-- MODULO 6: PREGUNTAS VERBALES EN VIVO                       -->
+    <!-- ========================================================== -->
+    <section id="mod-preguntas-verbales" class="section-module">
+      <div class="card">
+        <h2 class="card-title">6. Preguntas Frecuentes y Respuestas Verbales "Para Decir en Vivo"</h2>
+        <p class="card-subtitle">Haz clic en cada tarjeta para repasar las preguntas que la profesora acostumbra hacer durante la defensa</p>
+
+        <!-- P1 -->
+        <div class="faq-card">
+          <div class="faq-header" onclick="toggleFaq(this)">
+            <span class="faq-title">1. ¿Por que dicen que preprocesaron y codificaron, pero aclaran que no normalizaron matematicamente?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-body">
+            <p><strong>Respuesta verbal exacta:</strong></p>
+            <p>"Profesora: Porque convertir palabras a 1 y 0 es tecnicamente <em>Codificacion</em> (One-Hot Encoding con <code>pd.get_dummies</code>). La <em>normalizacion o estandarizacion matematica</em> (como <code>StandardScaler</code>) ajusta escalas numericas mediante medias y desviaciones estandar. En nuestro modelo no aplicamos StandardScaler porque Random Forest es un ensamble de arboles de decision que evalua cortes individuales por impureza Gini, siendo completamente invariante a transformaciones monotonicas de escala."</p>
+          </div>
+        </div>
+
+        <!-- P2 -->
+        <div class="faq-card">
+          <div class="faq-header" onclick="toggleFaq(this)">
+            <span class="faq-title">2. Si les pido en la laptop cambiar max_depth a 45 o None y re-ejecutar, ¿que pasara con las metricas y por que?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-body">
+            <p><strong>Respuesta verbal exacta:</strong></p>
+            <p>"Profesora: Si aumentamos <code>max_depth</code> a 45 o None, eliminamos el freno de poda. Los arboles creceran hasta que cada hoja sea pura, memorizando el ruido particular de los datos de entrenamiento. En entrenamiento el Accuracy llegara al 99-100%, pero en la particion de evaluacion el error crecera y el AUC caera debido al fenomeno de <strong>Sobreajuste (Overfitting)</strong>. Con <code>max_depth=19</code> controlamos la complejidad estructural de cada estimador."</p>
+          </div>
+        </div>
+
+        <!-- P3 -->
+        <div class="faq-card">
+          <div class="faq-header" onclick="toggleFaq(this)">
+            <span class="faq-title">3. ¿Por que tener 600 arboles no produce sobreajuste segun la teoria?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-body">
+            <p><strong>Respuesta verbal exacta:</strong></p>
+            <p>"Profesora: Segun el <em>Teorema de Leo Breiman</em> (fundador de Random Forest), aumentar el numero de arboles ($n\_estimators$) no sobreajusta porque el error de generalizacion converge asintoticamente a un limite finito. Lo unico que ocurre al subir a 1,500 arboles es que el tiempo de computo se alarga y se consume mas memoria RAM en Colab sin aportar ganancia apreciable en el AUC."</p>
+          </div>
+        </div>
+
+        <!-- P4 -->
+        <div class="faq-card">
+          <div class="faq-header" onclick="toggleFaq(this)">
+            <span class="faq-title">4. ¿Por que imputaron con 0 en acciones y con -1 en variables generales?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-body">
+            <p><strong>Respuesta verbal exacta:</strong></p>
+            <p>"Profesora: Porque el significado pedagogico es completamente distinto. En los logs de acciones, si un alumno no tiene registros de pedir pistas significa que <em>realizo 0 peticiones</em> (ausencia de evento = 0). En cambio, en variables numericas generales de diseno, un dato ausente representa falta de informacion; al imputarlo con <code>-1</code>, los arboles de decision pueden generar una regla de corte natural como $x_j \le -0.5$, aislando a los alumnos sin dato en una rama propia sin contaminar la media de los datos reales."</p>
+          </div>
+        </div>
+
+        <!-- P5 -->
+        <div class="faq-card">
+          <div class="faq-header" onclick="toggleFaq(this)">
+            <span class="faq-title">5. ¿Cual es la diferencia entre la salida continua y discreta del modelo en el codigo?</span>
+            <span class="faq-icon">+</span>
+          </div>
+          <div class="faq-body">
+            <p><strong>Respuesta verbal exacta:</strong></p>
+            <p>"Profesora: La salida discreta la genera <code>rf.predict(X_test)</code>, entregando un 0 o un 1 segun el umbral estandar de 0.5. La salida continua la genera <code>rf.predict_proba(X_test)</code>, entregando la probabilidad exacta calculada como el porcentaje de votos entre los 600 arboles. Esta probabilidad continua es la que permite construir la Curva ROC (AUC = 0.753) y activar alertas docentes tempranas personalizadas en un dashboard cuando $P(score=0) > 0.40$."</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function switchModule(modId) {
+      document.querySelectorAll('.section-module').forEach(m => m.classList.remove('active'));
+      document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+      
+      const target = document.getElementById(modId);
+      if (target) {
+        target.classList.add('active');
+        if (window.renderMathInElement) {
+          try {
+            renderMathInElement(target, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            });
+          } catch(e) {}
+        }
+      }
+
+      const activeBtn = Array.from(document.querySelectorAll('.mod-tab')).find(b => b.getAttribute('onclick').includes(modId));
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    function toggleFaq(header) {
+      const card = header.closest('.faq-card');
+      const body = card.querySelector('.faq-body');
+      const icon = header.querySelector('.faq-icon');
+      const isOpen = body.classList.contains('open');
+
+      if (isOpen) {
+        body.classList.remove('open');
+        icon.innerText = '+';
+      } else {
+        body.classList.add('open');
+        icon.innerText = '-';
+        if (window.renderMathInElement) {
+          try {
+            renderMathInElement(body, {
+              delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+              ],
+              ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            });
+          } catch(e) {}
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false}
+            ],
+            ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+          });
+        } catch(e) {}
+      }
+    });
+  </script>
+</body>
+</html>
