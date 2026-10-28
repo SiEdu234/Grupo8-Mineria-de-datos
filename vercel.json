@@ -1,0 +1,17 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/basura/DASHBOARD_DEFENSA_ORAL_GRUPO8.html"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/basura/DASHBOARD_DEFENSA_ORAL_GRUPO8.html"
+    },
+    {
+      "source": "/inspector",
+      "destination": "/basura/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html"
+    }
+  ]
+}
