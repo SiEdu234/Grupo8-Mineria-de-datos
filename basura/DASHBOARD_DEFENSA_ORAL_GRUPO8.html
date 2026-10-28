@@ -836,7 +836,6 @@
 </div>
 <nav class="nav-tabs">
 <button class="nav-btn active" onclick="goTab('sec-preguntas-maestras')">Banco de Preguntas</button>
-<button class="nav-btn" onclick="goTab('sec-contexto')">Fases CRISP &amp; Negocio</button>
 <button class="nav-btn" onclick="goTab('sec-archivos-reales')">Limpieza, Datos &amp; CSVs</button>
 <button class="nav-btn" onclick="goTab('sec-codigo-senalado')">Codigo Senalado en Vivo</button>
 <button class="nav-btn" onclick="goTab('sec-cambios-profesora')">Cambios en Vivo (Params)</button>
@@ -867,7 +866,7 @@
 <button class="filter-btn" onclick="filterCategory('cat-modelado', this)">Modelado &amp; Hiperparametros</button>
 <button class="filter-btn" onclick="filterCategory('cat-desbalance', this)">Desbalance &amp; Metricas</button>
 <button class="filter-btn" onclick="filterCategory('cat-dashboard', this)">Dashboard &amp; Despliegue</button>
-<button class="filter-btn" onclick="filterCategory('cat-negocio', this)">Negocio &amp; CRISP-ML(Q)</button>
+<button class="filter-btn" onclick="filterCategory('cat-negocio', this)">Problema de Negocio</button>
 </div>
 <div id="faq-container">
 <!-- P1 -->
@@ -1716,7 +1715,7 @@ print('Criterio Deteccion Fallo &gt;= 50%:', metrics['Recall score=0'] &gt;= 0.5
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">PROPUESTA METODOLOGICA</span>
-<span class="code-extract-file">Informe Tecnico • Seccion 4: Monitoreo CRISP-ML(Q)</span>
+<span class="code-extract-file">Informe Tecnico • Seccion 4: Monitoreo y Calidad del Modelo</span>
 </div>
 <pre class="code-extract-pre"><code># Protocolo de Calidad y Monitoreo:
 # 1. Monitoreo mensual de Data Drift en distribucion de clics (Kolmogorov-Smirnov).
@@ -1759,69 +1758,7 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
 </div>
 </section>
 <!-- ========================================================== -->
-<!-- SECCION 2: FASES CRISP & NEGOCIO                          -->
-<!-- ========================================================== -->
-<section class="section-content" id="sec-contexto">
-<div class="card">
-<h2 class="card-title">Estructura Metodologica Unificada: Tareas, Tecnicas, Herramientas y Resultados</h2>
-<div class="notice-box notice-info">
-<strong>Aclaracion de la profesora en tutoria:</strong><br/>
-          En CRISP-ML y CRISP-ML(Q), la Fase 1 unifica Comprension del Negocio y Comprension de los Datos. El resultado de la primera es el tipo de modelo y de la segunda es el conjunto de datos con X e Y.
-        </div>
-<div class="table-responsive">
-<table>
-<thead>
-<tr>
-<th>Fase Metodologica</th>
-<th>Tareas Desarrolladas</th>
-<th>Tecnicas Aplicadas</th>
-<th>Herramientas Empleadas</th>
-<th>Resultado Obtenido de la Fase</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>1. Comprension del Negocio y Datos</strong></td>
-<td>Definicion de necesidad, auditoria de 7 tablas CSV de EDM Cup 2023 y determinacion de la regla de etiquetado telemetrica.</td>
-<td>Analisis exploratorio, correlacion de habilidades CCSS, verificacion de balance de clases.</td>
-<td>Python, Pandas, Zenodo/OSF, Jupyter Notebook.</td>
-<td><strong>Tipo de modelo definido (Supervisado Random Forest) y conjunto de datos con variables X (722) e Y (score).</strong></td>
-</tr>
-<tr>
-<td><strong>2. Preparacion de los Datos</strong></td>
-<td>Muestreo de 3,000 estudiantes (semilla 42), lectura por bloques de action_logs, cruce relacional, One-Hot Encoding e imputacion.</td>
-<td>Agregacion por chunks (300k filas), codificacion dummies de secuencias y habilidades, extraccion BERT PCA 32D, imputacion (-1 y 0).</td>
-<td>Python, Pandas, NumPy, re (expresiones regulares).</td>
-<td><strong>Dataset unico consolidado: assistments_rf_dataset.csv.gz (51,042 filas y 722 predictores numericos float32).</strong></td>
-</tr>
-<tr>
-<td><strong>3. Modelado</strong></td>
-<td>Particion train/eval, configuracion de hiperparametros no por defecto, entrenamiento del ensamble de 600 arboles.</td>
-<td>Bagging (Bootstrap Aggregation), Random Forest Classifier, optimizacion de impureza Gini, seleccion sqrt(p).</td>
-<td>Scikit-Learn (RandomForestClassifier), Google Colab.</td>
-<td><strong>Modelo entrenado (rf) capaz de predecir clases y probabilidades continuas P(score=0) y P(score=1).</strong></td>
-</tr>
-<tr>
-<td><strong>4. Evaluacion</strong></td>
-<td>Inferencia en 11,107 filas de test, calculo de matriz de confusion, metricas globales y por clase, curva ROC y relevancia MDI.</td>
-<td>Matriz de confusion, Accuracy, Precision, Recall, F1 macro, ROC-AUC, Feature Importance (Gini).</td>
-<td>Scikit-Learn Metrics, Matplotlib, Seaborn.</td>
-<td><strong>Rendimiento verificado: Accuracy 70.22%, AUC 0.753, Recall clase 0 55.70%, graficos interpretados.</strong></td>
-</tr>
-<tr>
-<td><strong>5. Despliegue (Prototipo)</strong></td>
-<td>Implementacion de inferencia sin etiquetas, evaluacion de riesgo individual, generacion de salida y propuesta de alerta.</td>
-<td>Inferencia sobre matriz float32, calibracion de umbral de decision, exportacion automatizada a CSV.</td>
-<td>Python, Pandas, Colab Celdas 9 y 11.</td>
-<td><strong>Prototipo funcional que recibe datos nuevos sin score y emite score_predicho y probabilidades de riesgo.</strong></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<!-- ========================================================== -->
-<!-- SECCION 3: LIMPIEZA, DATOS & CSVS REALES                  -->
+<!-- SECCION 2: LIMPIEZA, DATOS & CSVS REALES                   -->
 <!-- ========================================================== -->
 <section class="section-content" id="sec-archivos-reales">
 <div class="card">
