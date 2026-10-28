@@ -859,14 +859,14 @@
 <input class="faq-input" id="faq-search-input" oninput="filterFaqs()" placeholder="Buscar pregunta..." type="text"/>
 </div>
 <div class="filter-btn-group">
-<button class="filter-btn active" onclick="filterCategory(\'all\', this)">Todas (25)</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-etiqueta\', this)">Etiqueta Y &amp; Reglas</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-variables\', this)">Variables X (722)</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-limpieza\', this)">Limpieza &amp; Preprocesamiento</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-modelado\', this)">Modelado &amp; Hiperparametros</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-desbalance\', this)">Desbalance &amp; Metricas</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-dashboard\', this)">Dashboard &amp; Despliegue</button>
-<button class="filter-btn" onclick="filterCategory(\'cat-negocio\', this)">Negocio &amp; CRISP-ML(Q)</button>
+<button class="filter-btn active" onclick="filterCategory('all', this)">Todas (25)</button>
+<button class="filter-btn" onclick="filterCategory('cat-etiqueta', this)">Etiqueta Y &amp; Reglas</button>
+<button class="filter-btn" onclick="filterCategory('cat-variables', this)">Variables X (722)</button>
+<button class="filter-btn" onclick="filterCategory('cat-limpieza', this)">Limpieza &amp; Preprocesamiento</button>
+<button class="filter-btn" onclick="filterCategory('cat-modelado', this)">Modelado &amp; Hiperparametros</button>
+<button class="filter-btn" onclick="filterCategory('cat-desbalance', this)">Desbalance &amp; Metricas</button>
+<button class="filter-btn" onclick="filterCategory('cat-dashboard', this)">Dashboard &amp; Despliegue</button>
+<button class="filter-btn" onclick="filterCategory('cat-negocio', this)">Negocio &amp; CRISP-ML(Q)</button>
 </div>
 <div id="faq-container">
 <!-- P1 -->
@@ -998,7 +998,7 @@ eval_scores = read_scores(evaluation_path, 'evaluation')</code></pre>
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6</span>
 </div>
-<pre class="code-extract-pre"><code># Las etiquetas provienen de la telemetria oficial de la plataforma:
+<pre class="code-extract-pre"><code># Telemetria objetiva registrada por el servidor LMS de ASSISTments:
 total_scores_path = find_file('unit_test_scores.csv', required=False)
 score_lookup = pd.concat(score_parts, ignore_index=True)
 score_lookup['score'] = pd.to_numeric(score_lookup['score'], errors='coerce')</code></pre>
@@ -1028,12 +1028,13 @@ score_lookup['score'] = pd.to_numeric(score_lookup['score'], errors='coerce')</c
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code>required = {'assignment_log_id', 'problem_id', 'score'}
+<pre class="code-extract-pre"><code># Auditoria inicial en Fase 1 (Comprension de Negocio y Datos):
+required = {'assignment_log_id', 'problem_id', 'score'}
 missing = required - set(df.columns)
 if missing:
-    raise ValueError(f'{path.name}: faltan columnas {sorted(missing)}')</code></pre>
+    raise ValueError(f'{path.name}: faltan columnas requeridas {sorted(missing)}')</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar la validacion temprana en Comprension de Datos / Negocio antes de transformar features.
+<strong>Senalar a la docente:</strong> Mostrar la verificacion de columnas requeridas en la Fase 1 antes de iniciar cualquier ingenieria de variables.
               </div>
 </div></div>
 </div>
@@ -1057,14 +1058,14 @@ if missing:
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6</span>
+<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Las etiquetas provienen de la telemetria oficial de la plataforma:
-total_scores_path = find_file('unit_test_scores.csv', required=False)
-score_lookup = pd.concat(score_parts, ignore_index=True)
-score_lookup['score'] = pd.to_numeric(score_lookup['score'], errors='coerce')</code></pre>
+<pre class="code-extract-pre"><code># 722 Variables predictoras independientes en X (float32):
+id_columns = {'score', 'student_id', 'source_split', 'unit_test_assignment_log_id', 'problem_id'}
+feature_columns = [col for col in df.columns if col not in id_columns]
+X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Enfatizar que no hubo humanos clasificando subjetivamente; fue telemetria del servidor LMS.
+<strong>Senalar a la docente:</strong> Mostrar <code>feature_columns</code> y la conversion de <code>X</code> a <code>float32</code> con 722 variables predictoras.
               </div>
 </div>
 </div>
@@ -1089,14 +1090,20 @@ score_lookup['score'] = pd.to_numeric(score_lookup['score'], errors='coerce')</c
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 4</span>
+<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code>required = {'assignment_log_id', 'problem_id', 'score'}
-missing = required - set(df.columns)
-if missing:
-    raise ValueError(f'{path.name}: faltan columnas {sorted(missing)}')</code></pre>
+<pre class="code-extract-pre"><code># 5 Columnas excluidas obligatoriamente de X (Data Leakage y sesgo identificador):
+id_columns = {
+    'score',                        # Variable dependiente Y (evita fuga de informacion)
+    'student_id',                   # ID nominal (evita memorizacion de alumnos)
+    'source_split',                 # Indicador de particion train/evaluacion
+    'unit_test_assignment_log_id',  # Clave primaria relacional
+    'problem_id'                    # Identificador del item evaluado
+}
+feature_columns = [col for col in df.columns if col not in id_columns]
+print(f'Total variables predictoras en X: {len(feature_columns)}') # Exactamente 722</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar la validacion temprana en Comprension de Datos / Negocio antes de transformar features.
+<strong>Senalar a la docente:</strong> Mostrar la lista <code>id_columns</code> y explicar por que <code>score</code> y <code>student_id</code> jamas deben ingresar en la matriz de entrenamiento <code>X</code>.
               </div>
 </div>
 </div>
@@ -1117,17 +1124,20 @@ if missing:
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code>id_columns = {
-    'score', 'student_id', 'source_split',
-    'unit_test_assignment_log_id', 'problem_id'
-}
-feature_columns = [column for column in df.columns if column not in id_columns]
-print(f'Total variables en X: {len(feature_columns)}') # Exactamente 722
+<pre class="code-extract-pre"><code># 1. Separacion de variables independientes X (722 predictores numericos en float32):
+feature_columns = [col for col in df.columns if col not in id_columns]
+X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
 
-# Matriz predictora X en float32:
-X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')</code></pre>
+# 2. Separacion de variable dependiente Y (score 0 o 1 en int8):
+y = pd.to_numeric(df['score'], errors='coerce')
+labeled = y.notna() &amp; y.isin([0, 1])
+y = y.loc[labeled].astype('int8')
+
+# 3. Particiones oficiales indexadas:
+X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+y_train, y_test = y.iloc[train_idx].to_numpy(), y.iloc[test_idx].to_numpy()</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar <code>feature_columns</code> y la conversion de <code>X</code> a <code>float32</code>.
+<strong>Senalar a la docente:</strong> Mostrar la definicion simultanea de la matriz <code>X</code> (float32) y del vector <code>y</code> (int8) en Celda 4.
               </div>
 </div>
 <div class="speech-box">
@@ -1157,15 +1167,21 @@ X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype(
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
+<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6 &amp; Celda 8</span>
 </div>
-<pre class="code-extract-pre"><code>id_columns = {
-    'score', 'student_id', 'source_split',
-    'unit_test_assignment_log_id', 'problem_id'
-}
-feature_columns = [column for column in df.columns if column not in id_columns]</code></pre>
+<pre class="code-extract-pre"><code># 1. Imputacion con 0 en acciones de alumnos (ausencia real de clics o pistas):
+action_cols = [c for c in dataset.columns if c.startswith('action_') or c.startswith('available_core_tutoring_')]
+dataset[action_cols] = dataset[action_cols].fillna(0)
+
+# 2. Imputacion con -1 para valores faltantes e infinitos (arboles de decision):
+dataset = dataset.replace([np.inf, -np.inf], np.nan)
+dataset[feature_columns] = dataset[feature_columns].fillna(-1).astype('float32')
+
+# 3. Filtrado: unicamente registros con etiquetas score validas (0 o 1):
+labeled = y.notna() &amp; y.isin([0, 1])
+df = df.loc[labeled].reset_index(drop=True)</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Senalar cada uno de los 5 nombres en <code>id_columns</code> y justificar por que no deben entrar en <code>X</code>.
+<strong>Senalar a la docente:</strong> Mostrar que se usaron ambas tecnicas de imputacion: 0 para acciones y -1 para variables generales, aislando nulos en ramas de corte.
               </div>
 </div>
 </div>
@@ -1199,10 +1215,11 @@ feature_columns = [column for column in df.columns if column not in id_columns]<
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Random Forest no requiere StandardScaler. Solo se estandariza el tipo a float32:
+<pre class="code-extract-pre"><code># Random Forest es invariante a escala. No requiere StandardScaler.
+# Solo se estandariza el tipo numerico a float32 con valores imputados homogeneos:
 X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Explicar la invarianza a transformaciones monotonas del indice de impureza de Gini.
+<strong>Senalar a la docente:</strong> Explicar la invarianza a transformaciones monotonas del indice de impureza de Gini ($x_j \le c \iff g(x_j) \le g(c)$).
               </div>
 </div></div>
 </div>
@@ -1228,17 +1245,16 @@ X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype(
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Ubicacion exacta de X e Y:
-X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
-y = pd.to_numeric(df['score'], errors='coerce')
-
-# Division formal:
-X_train = X.iloc[train_idx]
-X_test = X.iloc[test_idx]
-y_train = y.iloc[train_idx].to_numpy()
-y_test = y.iloc[test_idx].to_numpy()</code></pre>
+<pre class="code-extract-pre"><code># Manejo del desbalance 60/40 sin remuestreo artificial (evaluando metricas Macro):
+metrics = {
+    'Accuracy': accuracy_score(y_test, y_pred),                                # 70.22%
+    'F1 macro': f1_score(y_test, y_pred, average='macro', zero_division=0),    # 0.6828
+    'Recall macro': recall_score(y_test, y_pred, average='macro', zero_division=0),
+    'Recall clase 0 (fallo)': recall_score(y_test, y_pred, pos_label=0, zero_division=0), # 55.70%
+    'ROC AUC (score=0)': roc_auc_score(y_non_success, y_prob_non_success)       # 0.7528
+}</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Celda 4, primeras 10 lineas de la definicion de datos.
+<strong>Senalar a la docente:</strong> Mostrar que <code>average='macro'</code> pondera ambas clases por igual (50/50), evitando el sesgo de mayoria sin recurrir a tecnicas sinteticas como SMOTE.
               </div>
 </div>
 </div>
@@ -1263,22 +1279,18 @@ y_test = y.iloc[test_idx].to_numpy()</code></pre>
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6</span>
+<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># 1. Imputacion con 0 en acciones (ausencia real de evento):
-action_feature_columns = [c for c in dataset.columns if c.startswith('action_') or
-                          c.startswith('available_core_tutoring_')]
-dataset[action_feature_columns] = dataset[action_feature_columns].fillna(0)
+<pre class="code-extract-pre"><code># Metricas globales que evaluan ambas clases equitativamente:
+f1_macro = f1_score(y_test, y_pred, average='macro', zero_division=0)  # 0.6828
 
-# 2. Imputacion con -1 para infinitos y nulos generales:
-dataset = dataset.replace([np.inf, -np.inf], np.nan)
-dataset[feature_columns] = dataset[feature_columns].fillna(-1).astype('float32')
-
-# 3. Eliminacion: solo registros con etiqueta score no valida:
-labeled = y.notna() &amp; y.isin([0, 1])
-df = df.loc[labeled].reset_index(drop=True)</code></pre>
+# ROC-AUC sobre probabilidades continuas de la clase 0:
+probabilities = rf.predict_proba(X_test)
+y_prob_non_success = probabilities[:, class_index[0]]
+y_non_success = (y_test == 0).astype('int8')
+auc = roc_auc_score(y_non_success, y_prob_non_success)  # 0.7528</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar que se usaron ambas tecnicas (0 para acciones, -1 para arboles de decision).
+<strong>Senalar a la docente:</strong> Mostrar <code>f1_score(..., average='macro')</code> y <code>roc_auc_score</code> en Celda 4 que evaluan el modelo globalmente sin inflarse por la clase mayoritaria.
               </div>
 </div>
 <div class="speech-box">
@@ -1308,10 +1320,17 @@ df = df.loc[labeled].reset_index(drop=True)</code></pre>
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Random Forest no requiere StandardScaler. Solo se estandariza el tipo a float32:
-X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')</code></pre>
+<pre class="code-extract-pre"><code># Particion oficial del caso de estudio por source_split:
+train_mask = df['source_split'].eq('train')
+eval_mask = df['source_split'].eq('evaluation')
+
+train_idx = np.flatnonzero(train_mask.to_numpy())  # Exactamente 39,935 filas (78.24%)
+test_idx = np.flatnonzero(eval_mask.to_numpy())    # Exactamente 11,107 filas (21.76%)
+
+X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+y_train, y_test = y.iloc[train_idx].to_numpy(), y.iloc[test_idx].to_numpy()</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Explicar la invarianza a transformaciones monotonas del indice de impureza de Gini.
+<strong>Senalar a la docente:</strong> Mostrar que <code>source_split</code> separa 39,935 filas de train y 11,107 de eval sin cruce de estudiantes.
               </div>
 </div>
 </div>
@@ -1326,13 +1345,15 @@ X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype(
 <span class="faq-toggle-icon">+</span>
 </div>
 <div class="faq-body">
-<p>Todos los archivos estan en <code>EDMCup2023_fuente_oficial/data/</code>:</p>
+<p>Los archivos crudos estan en <code>EDMCup2023_fuente_oficial/data/</code> y la data procesada en <code>EDMCup2023_fuente_oficial/salida/</code>:</p>
 <ul style="margin-left: 20px; line-height: 1.8;">
-<li><strong>training_unit_test_scores.csv (10 MB):</strong> Abrir este en Excel. Contiene <code>assignment_log_id, problem_id, score</code> con la etiqueta real de entrenamiento.</li>
+<li><strong>training_unit_test_scores.csv (10 MB):</strong> Contiene <code>assignment_log_id, problem_id, score</code> con la etiqueta real de entrenamiento.</li>
 <li><strong>assignment_relationships.csv (14 MB):</strong> Tabla puente relacional que conecta examenes con tareas de practica previas.</li>
 <li><strong>sequence_details.csv (3.8 MB):</strong> Rutas curriculares de carpetas (grado, modulo, leccion).</li>
 <li><strong>problem_details.csv (58 MB):</strong> Habilidades CCSS y tipo de problema.</li>
-<li><strong>action_logs.csv (1.43 GB):</strong> Mas de 30 millones de filas. <em>Explicar: Excel solo soporta 1,048,576 filas, por lo que se procesa en Python por chunks de 300,000 filas.</em></li>
+<li><strong>action_logs.csv (1.43 GB):</strong> Mas de 30 millones de filas de clics. <em>Explicar: Excel solo soporta 1,048,576 filas, por lo que se procesa en Python por chunks de 300,000 filas.</em></li>
+<li><strong>assistments_rf_dataset.csv (160 MB):</strong> Dataset procesado final con las 722 variables predictoras en float32.</li>
+<li><strong>Libros Excel organizados en basura/:</strong> <code>Data_Cruda_Muestra_Columnas_Excel.xlsx</code> (las 7 tablas crudas con columnas separadas nativamente) y <code>Data_Procesada_Muestra_Columnas_Excel.xlsx</code> (muestra de 722 predictores).</li>
 </ul>
 <div class="code-extract-card">
 <div class="code-extract-header">
@@ -1348,7 +1369,7 @@ sequence_path = find_file('sequence_details.csv')
 problem_path = find_file('problem_details.csv')
 action_path = find_file('action_logs.csv')  # En data/files/</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Abrir la carpeta <code>carpeta_datos_excel_profesora/</code> para mostrar los 9 archivos en Excel.
+<strong>Senalar a la docente:</strong> Mostrar los libros Excel en <code>basura/</code> (Data_Cruda_Muestra_Columnas_Excel.xlsx y Data_Procesada_Muestra_Columnas_Excel.xlsx) o los archivos en <code>EDMCup2023_fuente_oficial/salida/</code>.
               </div>
 </div></div>
 </div>
@@ -1417,14 +1438,19 @@ probabilities = rf.predict_proba(X_test) # Probabilidades continuas (11107, 2)</
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Evaluacion sin deformacion SMOTE; uso de metricas Macro no sesgadas:
-'Precision macro': precision_score(y_test, y_pred, average='macro', zero_division=0),
-'Recall macro': recall_score(y_test, y_pred, average='macro', zero_division=0),
-'F1 macro': f1_score(y_test, y_pred, average='macro', zero_division=0),
-'Recall score=0': recall_score(y_test, y_pred, pos_label=0, zero_division=0),
-'ROC AUC (score=0)': roc_auc_score(y_non_success, y_prob_non_success)</code></pre>
+<pre class="code-extract-pre"><code># Instanciacion de Random Forest con hiperparametros optimizados:
+rf = RandomForestClassifier(
+    n_estimators=600,        # 600 arboles (estabilidad en probabilidades, vs 100 por defecto)
+    max_depth=19,            # Poda a profundidad 19 (evita sobreajuste, vs None por defecto)
+    min_samples_split=10,    # Minimo 10 muestras para dividir un nodo (vs 2 por defecto)
+    min_samples_leaf=2,      # Minimo 2 muestras por hoja terminal (vs 1 por defecto)
+    max_features='sqrt',     # Breiman: floor(sqrt(722)) = 27 variables aleatorias por nodo
+    bootstrap=True,          # Remuestreo con reemplazo para cada arbol
+    random_state=42,         # Reproducibilidad exacta
+    n_jobs=-1                # Paralelizacion en todos los nucleos CPU de Colab
+)</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar el diccionario de metricas con <code>average='macro'</code>.
+<strong>Senalar a la docente:</strong> Lineas 22-31 de la Celda 4 mostrando cada hiperparametro ajustado contra el sobreajuste.
               </div>
 </div>
 </div>
@@ -1493,13 +1519,15 @@ ightarrow$ <em>Falsa alarma</em>.</li>
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Metrica principal global de discriminacion (ROC-AUC):
-probabilities = rf.predict_proba(X_test)
-y_prob_non_success = probabilities[:, class_index[0]]
-y_non_success = (y_test == 0).astype('int8')
-auc = roc_auc_score(y_non_success, y_prob_non_success) # 0.7528</code></pre>
+<pre class="code-extract-pre"><code># Calculo de la matriz de confusion sobre 11,107 evaluaciones de test:
+cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+# cm[0,0] = VN = 2526  (Fallo detectado a tiempo)
+# cm[0,1] = FP = 2009  (Fallo no detectado)
+# cm[1,0] = FN = 1298  (Falsa alarma de riesgo)
+# cm[1,1] = VP = 5274  (Acierto confirmado)
+print(f'Accuracy: {accuracy_score(y_test, y_pred) * 100:.2f}%')  # 70.22%</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar el calculo de <code>roc_auc_score</code> sobre las probabilidades continuas de fallo.
+<strong>Senalar a la docente:</strong> Matriz de confusion en Celda 4 con VN=2,526, FP=2,009, FN=1,298, VP=5,274 y Exactitud global del 70.22%.
               </div>
 </div>
 </div>
@@ -1525,20 +1553,13 @@ auc = roc_auc_score(y_non_success, y_prob_non_success) # 0.7528</code></pre>
 <span class="code-extract-badge">CODIGO EXACTO</span>
 <span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
 </div>
-<pre class="code-extract-pre"><code># Particion oficial del caso de estudio:
-train_mask = df['source_split'].eq('train')
-eval_mask = df['source_split'].eq('evaluation')
-
-train_idx = np.flatnonzero(train_mask.to_numpy())  # Exactamente 39,935 filas (78.24%)
-test_idx = np.flatnonzero(eval_mask.to_numpy())    # Exactamente 11,107 filas (21.76%)
-
-X_train = X.iloc[train_idx]
-X_test = X.iloc[test_idx]
-y_train = y.iloc[train_idx].to_numpy()
-y_test = y.iloc[test_idx].to_numpy()</code></pre>
+<pre class="code-extract-pre"><code># Evaluacion del Recall para la clase 0:
+recall_0 = recall_score(y_test, y_pred, pos_label=0, zero_division=0)  # 0.5570
+precision_0 = precision_score(y_test, y_pred, pos_label=0, zero_division=0)  # 0.6606
+f1_mac = f1_score(y_test, y_pred, average='macro', zero_division=0)  # 0.6828</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Mostrar que <code>source_split</code> separa 39,935 filas de train y 11,107 de test sin cruce de estudiantes.
-              </div>
+<strong>Senalar a la docente:</strong> Mostrar la linea de <code>recall_score(y_test, y_pred, pos_label=0)</code> en Celda 4.
+</div>
 </div>
 </div>
 </div>
@@ -1564,18 +1585,19 @@ y_test = y.iloc[test_idx].to_numpy()</code></pre>
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_01_Preparar_CSV.ipynb • Celda 6</span>
+<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 5</span>
 </div>
-<pre class="code-extract-pre"><code>training_path = find_file('training_unit_test_scores.csv')
-evaluation_path = find_file('evaluation_unit_test_scores.csv')
-total_scores_path = find_file('unit_test_scores.csv', required=False)
-relationships_path = find_file('assignment_relationships.csv')
-assignment_path = find_file('assignment_details.csv')
-sequence_path = find_file('sequence_details.csv')
-problem_path = find_file('problem_details.csv')
-action_path = find_file('action_logs.csv')  # En data/files/</code></pre>
+<pre class="code-extract-pre"><code># Curva ROC y calculo de ROC-AUC para la clase 0:
+fpr, tpr, thresholds = roc_curve(y_non_success, y_prob_non_success)
+auc_val = roc_auc_score(y_non_success, y_prob_non_success)  # 0.7528
+
+# Visualizacion de la curva ROC:
+plt.plot(fpr, tpr, label=f'Random Forest (AUC = {auc_val:.4f})', color='#3366CC', lw=2)
+plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Azar (AUC = 0.50)')
+plt.xlabel('Tasa de Falsos Positivos (FPR)')
+plt.ylabel('Tasa de Verdaderos Positivos (TPR)')</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Abrir la carpeta <code>carpeta_datos_excel_profesora/</code> para mostrar los 9 archivos en Excel.
+<strong>Senalar a la docente:</strong> Grafico de Curva ROC en Celda 5 y el valor de AUC de 0.7528 que supera ampliamente al azar (0.50).
               </div>
 </div>
 </div>
@@ -1627,21 +1649,24 @@ plt.title('15 variables más importantes en Random Forest')</code></pre>
 <div class="code-extract-card">
 <div class="code-extract-header">
 <span class="code-extract-badge">CODIGO EXACTO</span>
-<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 4</span>
+<span class="code-extract-file">ASSISTments_RF_Colab_ES.ipynb • Celda 11</span>
 </div>
-<pre class="code-extract-pre"><code># 1. ENTRADA:
-X_train = X.iloc[train_idx]             # Matriz (39935, 722)
-y_train = y.iloc[train_idx].to_numpy()   # Vector (39935,)
+<pre class="code-extract-pre"><code># 1. Serializacion y persistencia del modelo con Joblib:
+import joblib
+joblib.dump(rf, 'modelo_rf_assistments.joblib')
 
-# 2. PROCESO:
-rf = RandomForestClassifier(n_estimators=600, max_depth=19, random_state=42, n_jobs=-1)
-rf.fit(X_train, y_train)
+# 2. Carga del archivo nuevo de prueba sin etiquetas (sin columna 'score'):
+nuevos_df = pd.read_csv('assistments_nuevos_sin_etiqueta_demo.csv')
+X_nuevo = nuevos_df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
 
-# 3. SALIDA:
-y_pred = rf.predict(X_test)              # Predicciones discretas (11107,)
-probabilities = rf.predict_proba(X_test) # Probabilidades continuas (11107, 2)</code></pre>
+# 3. Generacion de la salida: clases, probabilidades continuas y alertas docentes:
+nuevos_df['score_predicho'] = rf.predict(X_nuevo)
+probabilidades = rf.predict_proba(X_nuevo)
+nuevos_df['prob_fallo'] = probabilidades[:, 0]  # P(score = 0)
+nuevos_df['prob_exito'] = probabilidades[:, 1]  # P(score = 1)
+nuevos_df['alerta_docente'] = np.where(nuevos_df['prob_fallo'] &gt; 0.40, 'EN RIESGO', 'SATISFACTORIO')</code></pre>
 <div class="code-extract-tip">
-<strong>Senalar a la docente:</strong> Celda 4 completa, mostrando Entrada, Proceso (fit) y Salida (predict).
+<strong>Senalar a la docente:</strong> Mostrar la Celda 11 donde se sube el CSV sin etiquetas y el modelo bota las predicciones y las alertas tempranas de intervencion educativa.
               </div>
 </div>
 </div>
@@ -1808,12 +1833,14 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
           Los archivos reales estan en <code>EDMCup2023_fuente_oficial/data/</code>. A continuacion se detalla que archivo abrir si la profesora pide inspeccionar la data:
         </p>
 <div class="sub-nav">
-<button class="sub-tab-btn active" onclick="showCsvReal(\'real-train\', this)">training_unit_test_scores.csv (10 MB)</button>
-<button class="sub-tab-btn" onclick="showCsvReal(\'real-rels\', this)">assignment_relationships.csv (14 MB)</button>
-<button class="sub-tab-btn" onclick="showCsvReal(\'real-seq\', this)">sequence_details.csv (3.8 MB)</button>
-<button class="sub-tab-btn" onclick="showCsvReal(\'real-prob\', this)">problem_details.csv (58 MB)</button>
-<button class="sub-tab-btn" onclick="showCsvReal(\'real-action\', this)">action_logs.csv (1.43 GB)</button>
-<button class="sub-tab-btn" onclick="showCsvReal(\'real-proc\', this)">assistments_rf_dataset.csv (160 MB)</button>
+<button class="sub-tab-btn active" onclick="showCsvReal('real-train', this)">training_unit_test_scores.csv (10 MB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-rels', this)">assignment_relationships.csv (14 MB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-seq', this)">sequence_details.csv (3.8 MB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-prob', this)">problem_details.csv (58 MB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-action', this)">action_logs.csv (1.43 GB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-proc', this)">assistments_rf_dataset.csv (160 MB)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-excel', this)">Libros Excel (.xlsx)</button>
+<button class="sub-tab-btn" onclick="showCsvReal('real-infer', this)">assistments_nuevos_sin_etiqueta_demo.csv (1.59 MB)</button>
 </div>
 <div class="csv-pane" id="real-train">
 <h4 style="color: var(--primary);">training_unit_test_scores.csv (Tamano: 10.03 MB - Abrir en Excel)</h4>
@@ -1879,10 +1906,32 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
 <div class="csv-pane" id="real-proc" style="display: none;">
 <h4 style="color: var(--success);">assistments_rf_dataset.csv (Data Preprocesada Final - 160 MB / .gz 7 MB)</h4>
 <p style="font-size: 0.88rem; color: var(--text-muted); margin: 6px 0;">
-            Ubicacion: <code>salida/assistments_rf_dataset.csv</code> (o <code>.csv.gz</code>)
+            Ubicacion: <code>EDMCup2023_fuente_oficial/salida/assistments_rf_dataset.csv</code> (o <code>.csv.gz</code>)
           </p>
 <p style="font-size: 0.9rem; line-height: 1.6;">
 <strong>Que ensenar:</strong> Es la tabla consolidada que entra al modelo: <strong>51,042 filas</strong> y <strong>722 variables predictoras numericas float32</strong>, mas 5 de control y etiqueta.
+          </p>
+</div>
+<div class="csv-pane" id="real-excel" style="display: none;">
+<h4 style="color: var(--primary);">Libros de Trabajo en Excel (basura/*.xlsx con columnas separadas nativas)</h4>
+<p style="font-size: 0.88rem; color: var(--text-muted); margin: 6px 0;">
+            Ubicacion: Carpeta <code>basura/</code>
+          </p>
+<ul style="margin-left: 20px; line-height: 1.8; font-size: 0.9rem;">
+<li><strong>Data_Cruda_Muestra_Columnas_Excel.xlsx:</strong> Contiene las 7 tablas de la base oficial separadas en pestanas de Excel individuales (<code>training_scores</code>, <code>relationships</code>, <code>sequence_details</code>, <code>problem_details</code>, <code>unit_test_scores</code>, <code>eval_scores</code>, <code>assignments</code>), con datos distribuidos celda por celda sin formato plano de coma o punto y coma.</li>
+<li><strong>Data_Procesada_Muestra_Columnas_Excel.xlsx:</strong> Contiene una muestra representativa con las 722 variables predictoras procesadas en columnas independientes de Excel.</li>
+</ul>
+<p style="font-size: 0.9rem; line-height: 1.6; margin-top: 8px;">
+<strong>Que ensenar:</strong> Si la profesora pide abrir la data en Excel, abrir estos libros donde cada campo tiene su propia celda nativa sin necesidad de importar texto a columnas.
+          </p>
+</div>
+<div class="csv-pane" id="real-infer" style="display: none;">
+<h4 style="color: #38bdf8;">assistments_nuevos_sin_etiqueta_demo.csv (Dataset de Inferencia - 1.59 MB)</h4>
+<p style="font-size: 0.88rem; color: var(--text-muted); margin: 6px 0;">
+            Ubicacion: <code>EDMCup2023_fuente_oficial/salida/assistments_nuevos_sin_etiqueta_demo.csv</code>
+          </p>
+<p style="font-size: 0.9rem; line-height: 1.6;">
+<strong>Que ensenar:</strong> Archivo de prueba para la etapa de despliegue. Contiene las 722 variables predictoras de los estudiantes <strong>sin la columna <code>score</code></strong>. Al subirlo en la Celda 11 del cuaderno, el modelo instanciado ejecuta <code>predict()</code> y <code>predict_proba()</code>, generando las predicciones de exito o fallo y las alertas tempranas preventivas.
           </p>
 </div>
 </div>
@@ -2203,12 +2252,13 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
       });
     }
 
-    function showCsvReal(id) {
+    function showCsvReal(id, btn) {
       document.querySelectorAll('.csv-pane').forEach(p => p.style.display = 'none');
       document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
       const target = document.getElementById(id);
       if (target) target.style.display = 'block';
-      const activeBtn = Array.from(document.querySelectorAll('.sub-tab-btn')).find(b => b.getAttribute('onclick').includes(id));
+      if (btn) btn.classList.add('active');
+      const activeBtn = Array.from(document.querySelectorAll('.sub-tab-btn')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes(id));
       if (activeBtn) activeBtn.classList.add('active');
     }
 
