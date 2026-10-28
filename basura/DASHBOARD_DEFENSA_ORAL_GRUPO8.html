@@ -842,6 +842,7 @@
 <button class="nav-btn" onclick="goTab('sec-cambios-profesora')">Cambios en Vivo (Params)</button>
 <button class="nav-btn" onclick="goTab('sec-metricas-graficos')">Metricas &amp; Matriz</button>
 <button class="nav-btn" onclick="goTab('sec-dashboard-demo')">Dashboard / Despliegue</button>
+<a href="INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html" class="nav-btn" style="background: rgba(56, 189, 248, 0.2); border-color: var(--primary); color: var(--primary); text-decoration: none; display: inline-flex; align-items: center; font-weight: 600;">Inspector Datos Crudos</a>
 </nav>
 </div>
 </header>
@@ -1828,6 +1829,13 @@ CHUNK_SIZE = 300_000  # Lee el archivo grande de acciones por bloques.
 <div class="notice-box notice-warning">
 <strong>La profesora advirtio en clase:</strong><br/>
 <em>"Para que me puedan ejecutar el codigo, ¿que necesitan tener? Data en crudo y codigo... Porque yo puedo hacer cambios a la data en crudo. Esta es la data en crudo. Exactamente."</em>
+</div>
+<div class="notice-box notice-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+  <div>
+    <strong>NUEVO: Inspector Interactivo de Archivos Crudos &amp; Diccionario de Variables</strong><br/>
+    Explora las 8 tablas crudas completas, sus columnas exactas, el diagrama relacional y las respuestas textuales para la docente.
+  </div>
+  <a href="INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html" class="nav-btn" style="background: var(--primary); color: #030712; font-weight: 700; text-decoration: none; padding: 7px 14px; border-radius: 6px; white-space: nowrap;">Abrir Inspector Crudo</a>
 </div>
 <p style="font-size: 0.9rem; margin-bottom: 12px;">
           Los archivos reales estan en <code>EDMCup2023_fuente_oficial/data/</code>. A continuacion se detalla que archivo abrir si la profesora pide inspeccionar la data:

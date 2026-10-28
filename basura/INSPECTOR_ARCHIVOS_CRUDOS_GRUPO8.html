@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inspector de Archivos Crudos y Diccionario de Variables | Grupo 8</title>
+  
+  <!-- KaTeX para renderizado de formulas matematicas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+  <style>
+    :root {
+      --bg-dark: #0b1120;
+      --bg-card: #0f172a;
+      --bg-code: #030712;
+      --border: #1e293b;
+      --border-accent: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-hover: #0284c7;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --accent: #818cf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .title-group h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .title-group p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .nav-link-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link-btn:hover {
+      background: var(--primary);
+      color: #030712;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 16px;
+    }
+
+    /* Barra de Navegacion Principal */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Tarjetas y Contenedores */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge-blue { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #0284c7; }
+    .badge-green { background: rgba(52, 211, 153, 0.2); color: #34d399; border: 1px solid #059669; }
+    .badge-yellow { background: rgba(251, 191, 36, 0.2); color: #fbbf24; border: 1px solid #d97706; }
+    .badge-red { background: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid #dc2626; }
+    .badge-purple { background: rgba(129, 140, 248, 0.2); color: #818cf8; border: 1px solid #4f46e5; }
+
+    /* Cajas de Aviso */
+    .notice {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .notice-info {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 4px solid var(--primary);
+      color: #bae6fd;
+    }
+
+    .notice-warning {
+      background: rgba(251, 191, 36, 0.08);
+      border-left: 4px solid var(--warning);
+      color: #fef08a;
+    }
+
+    .notice-success {
+      background: rgba(52, 211, 153, 0.08);
+      border-left: 4px solid var(--success);
+      color: #a7f3d0;
+    }
+
+    /* Sub-navegacion para tablas crudas */
+    .file-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .file-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .file-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    .file-btn.active {
+      background: var(--primary);
+      color: #030712;
+      font-weight: 700;
+      border-color: var(--primary);
+    }
+
+    .file-pane {
+      display: none;
+    }
+
+    .file-pane.active {
+      display: block;
+    }
+
+    /* Tablas de Datos */
+    .table-container {
+      overflow-x: auto;
+      margin: 14px 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+
+    th {
+      background: #111827;
+      color: var(--primary);
+      padding: 10px 12px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #1e293b;
+      color: var(--text-main);
+    }
+
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    tr:hover {
+      background: rgba(56, 189, 248, 0.04);
+    }
+
+    /* Speech box para lo que debe decir el estudiante */
+    .speech-box {
+      background: #08101e;
+      border: 1px solid var(--border-accent);
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .speech-box strong {
+      color: var(--primary);
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Bloques de codigo */
+    .code-box {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: 6px;
+      margin: 12px 0;
+      overflow: hidden;
+    }
+
+    .code-box-header {
+      background: #0f172a;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    pre {
+      padding: 12px;
+      overflow-x: auto;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+    }
+
+    /* Diagrama Relacional */
+    .diagram-container {
+      background: #080f1e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 14px 0;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .diagram-node {
+      border: 1px solid var(--border-accent);
+      background: #0f172a;
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 6px 0;
+      display: inline-block;
+    }
+
+    /* Tarjetas Interactivas de Preguntas */
+    .sim-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .sim-card:hover {
+      border-color: var(--primary);
+    }
+
+    .sim-header {
+      padding: 12px 16px;
+      background: #111b2f;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .sim-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .sim-toggle {
+      color: var(--primary);
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .sim-body {
+      padding: 16px;
+      display: none;
+      border-top: 1px solid var(--border);
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+
+    /* Fórmulas matemáticas responsivas */
+    .math-formula-box {
+      background: rgba(14, 165, 233, 0.08);
+      border-left: 3px solid var(--primary);
+      padding: 10px 14px;
+      margin: 10px 0;
+      border-radius: 0 8px 8px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 14px;
+      }
+      .title-group h1 {
+        font-size: 1.05rem;
+      }
+      .card {
+        padding: 14px;
+      }
+      table {
+        font-size: 0.78rem;
+      }
+      th, td {
+        padding: 6px 8px;
+      }
+      pre {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="title-group">
+      <h1>Inspector de Datos Crudos & Variables | Grupo 8</h1>
+      <p>Caso de Estudio ASSISTments EDM Cup 2023 • Mineria de Datos • Evaluacion Oral</p>
+    </div>
+    <div class="header-actions">
+      <a href="DASHBOARD_DEFENSA_ORAL_GRUPO8.html" class="nav-link-btn">Volver al Dashboard Principal</a>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Mensaje Directo de Preparacion -->
+    <div class="notice notice-info">
+      <strong>Instruccion para la Evaluacion Oral:</strong> La profesora advirtio en clase: <em>"Para que me puedan ejecutar el codigo, ¿que necesitan tener? Data en crudo y codigo... Porque yo puedo hacer cambios a la data en crudo. Esta es la data en crudo. Exactamente."</em> Este inspector detalla exactamente que contiene cada archivo original, que variables mostrarle en vivo y como se transformaron en las 722 predictoras finales.
+    </div>
+
+    <!-- Pestañas Principales -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchMainTab('tab-crudas', this)">1. Las 8 Tablas Crudas (CSVs Oficiales)</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-relaciones', this)">2. Diagrama Relacional de Cruces</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-variables722', this)">3. De Data Cruda a 722 Variables X</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-exclusion', this)">4. Etiqueta Y & Variables Excluidas</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-excel', this)">5. Libros Excel Listos en basura/</button>
+      <button class="tab-btn" onclick="switchMainTab('tab-simulador', this)">6. Simulador Preguntas Profesora</button>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: LAS 8 TABLAS CRUDAS                               -->
+    <!-- ======================================================== -->
+    <div class="tab-content active" id="tab-crudas">
+      <div class="card">
+        <h2 class="card-title">
+          <span>Catalogo Detallado de Archivos en Crudo (EDMCup2023_fuente_oficial/data/)</span>
+          <span class="badge badge-blue">8 Archivos Originales</span>
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          Haz clic en cada boton para ver las columnas exactas, su significado en la plataforma educativa, una muestra de filas reales y que responder si la docente pide abrir el archivo en vivo:
+        </p>
+
+        <div class="file-nav">
+          <button class="file-btn active" onclick="switchRawFile('raw-train-scores', this)">1. training_unit_test_scores.csv (10 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-eval-scores', this)">2. evaluation_unit_test_scores.csv (3.4 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-relationships', this)">3. assignment_relationships.csv (14.2 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-details', this)">4. assignment_details.csv (921 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-sequences', this)">5. sequence_details.csv (3.8 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-problems', this)">6. problem_details.csv (59 MB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-actions', this)">7. action_logs.csv (1.43 GB)</button>
+          <button class="file-btn" onclick="switchRawFile('raw-unit-all', this)">8. unit_test_scores.csv (12.8 MB)</button>
+        </div>
+
+        <!-- 1. training_unit_test_scores.csv -->
+        <div class="file-pane active" id="raw-train-scores">
+          <div class="notice notice-success">
+            <strong>ARCHIVO CLAVE #1:</strong> Aqui reside la <strong>variable dependiente $Y$ de entrenamiento</strong> (columna <code>score</code>).
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/training_unit_test_scores.csv</code> (Tamano: 10.03 MB • Filas: ~390,000 evaluaciones)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre de Columna</th>
+                  <th>Tipo Dato</th>
+                  <th>Rol en Mineria</th>
+                  <th>Significado en ASSISTments (Telemetria LMS)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>assignment_log_id</code></td>
+                  <td>string (ID)</td>
+                  <td>Clave Primaria Relacional</td>
+                  <td>Identificador unico del examen sumativo (Unit Test) asignado al alumno.</td>
+                </tr>
+                <tr>
+                  <td><code>problem_id</code></td>
+                  <td>string (ID)</td>
+                  <td>Clave Secundaria Relacional</td>
+                  <td>Identificador del problema especifico respondido dentro de la prueba.</td>
+                </tr>
+                <tr>
+                  <td><code>score</code></td>
+                  <td>int8 (0 o 1)</td>
+                  <td><strong>VARIABLE DEPENDIENTE (Y)</strong></td>
+                  <td><strong>Etiqueta Ground Truth:</strong> 1 = Acierto en primer intento sin ayuda; 0 = Fallo o solicitud de pistas/respuestas.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que mostrar y responder a la profesora:</strong>
+            "Profesora, si abrimos este archivo en Excel, vemos inmediatamente las 3 columnas. Aqui esta la variable dependiente <code>score</code>. Si filtramos esa columna vemos solo dos valores: 1 y 0. Es una clasificacion supervisada binaria donde 1 significa que el alumno resolvio el ejercicio al primer intento sin ayuda del tutor virtual, y 0 significa que se equivoco o requirio pistas."
+          </div>
+        </div>
+
+        <!-- 2. evaluation_unit_test_scores.csv -->
+        <div class="file-pane" id="raw-eval-scores">
+          <div class="notice notice-info">
+            <strong>ARCHIVO CLAVE #2:</strong> Contiene las filas asignadas a la particion de evaluacion oficial del benchmark EDM Cup 2023.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/evaluation_unit_test_scores.csv</code> (Tamano: 3.36 MB • Filas: ~111,000 en benchmark)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Tipo</th>
+                  <th>Rol</th>
+                  <th>Significado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>int</td><td>Indice secuencial</td><td>Numero correlativo de fila en la evaluacion.</td></tr>
+                <tr><td><code>assignment_log_id</code></td><td>string</td><td>Clave Primaria</td><td>Identificador del test sumativo de evaluacion.</td></tr>
+                <tr><td><code>problem_id</code></td><td>string</td><td>Clave Secundaria</td><td>Problema matematico evaluado.</td></tr>
+                <tr><td><code>score</code></td><td>int / NaN</td><td>Variable Y de prueba</td><td>En la competencia oficial venia en blanco; en nuestra copia oficial se recuperaron las etiquetas para medir metricas reales (Accuracy 70.22%, AUC 0.753).</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que decir a la profesora:</strong>
+            "En la competencia oficial este archivo no traia la columna score para que los equipos enviaran sus predicciones. Sin embargo, los organizadores publicaron posteriormente las etiquetas completas en <code>unit_test_scores.csv</code>, lo que nos permitio validar cientificamente el modelo con exactamente 11,107 evaluaciones de test."
+          </div>
+        </div>
+
+        <!-- 3. assignment_relationships.csv -->
+        <div class="file-pane" id="raw-relationships">
+          <div class="notice notice-warning">
+            <strong>TABLA PUENTE RELACIONAL:</strong> Conecta las pruebas finales con las actividades previas del alumno.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/assignment_relationships.csv</code> (Tamano: 14.25 MB • Filas: ~520,000 registros)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Tipo</th>
+                  <th>Rol Relacional</th>
+                  <th>Explicacion Didactica</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>unit_test_assignment_log_id</code></td>
+                  <td>string (ID)</td>
+                  <td>Clave Foranea a Examen Final</td>
+                  <td>El examen donde queremos predecir si el alumno tendra exito o fallo.</td>
+                </tr>
+                <tr>
+                  <td><code>in_unit_assignment_log_id</code></td>
+                  <td>string (ID)</td>
+                  <td>Clave Foranea a Practica Previa</td>
+                  <td>Las tareas de practica formativa que el alumno realizo en esa unidad semanas antes.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que decir a la profesora:</strong>
+            "Esta tabla es el puente metodologico. Si la profesora nos pregunta: '¿Como saben lo que hizo el alumno antes del examen?', le mostramos esta tabla. Conecta el examen final con los IDs de las practicas formativas donde el alumno hizo clicks, pidio pistas o fallo."
+          </div>
+        </div>
+
+        <!-- 4. assignment_details.csv -->
+        <div class="file-pane" id="raw-details">
+          <div class="notice notice-warning">
+            <strong>ARCHIVO MASIVO DE METADATOS:</strong> Pesa 921 MB. Contiene datos de asignaciones, fechas y alumnos.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/assignment_details.csv</code> (Tamano: 921.42 MB • Filas: ~1.2 millones)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Tipo</th>
+                  <th>Tratamiento en el Pipeline</th>
+                  <th>Por que no entra en X</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>assignment_log_id</code></td><td>string</td><td>Clave de enlace relacional</td><td>Identificador nominal unico.</td></tr>
+                <tr><td><code>teacher_id</code></td><td>string</td><td>Descartado</td><td>ID del docente; se excluye para evitar sesgos discriminatorios hacia escuelas o profesores.</td></tr>
+                <tr><td><code>class_id</code></td><td>string</td><td>Descartado</td><td>ID del aula; se excluye para que el modelo generalice a cualquier institucion.</td></tr>
+                <tr><td><code>student_id</code></td><td>string</td><td><strong>Mecanismo de Control</strong></td><td><strong>NUNCA entra a X.</strong> Se utiliza exclusivamente para la division estratificada por grupos (GroupShuffleSplit) y muestreo de 3,000 alumnos para evitar Data Leakage.</td></tr>
+                <tr><td><code>sequence_id</code></td><td>string</td><td>Clave foranea a secuencia</td><td>Permite enlazar con <code>sequence_details.csv</code> para extraer el grado escolar y la leccion.</td></tr>
+                <tr><td><code>assignment_release_date</code></td><td>timestamp</td><td>Descartado</td><td>Fecha de publicacion.</td></tr>
+                <tr><td><code>assignment_due_date</code></td><td>timestamp</td><td>Descartado</td><td>Fecha limite de entrega.</td></tr>
+                <tr><td><code>assignment_start_time</code></td><td>timestamp</td><td>Descartado</td><td>Hora de inicio.</td></tr>
+                <tr><td><code>assignment_end_time</code></td><td>timestamp</td><td>Transformado en <code>notfinish_percent</code></td><td>Si es nulo, significa que el alumno dejo la tarea incompleta. Se computa la razon de tareas sin terminar.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que decir a la profesora:</strong>
+            "En <code>assignment_details.csv</code> esta <code>student_id</code>. Es fundamental explicarle que <code>student_id</code> NO es una variable independiente de X. Si metieramos <code>student_id</code> a los arboles de Random Forest, el modelo memorizaria que Juan o Maria aprueban en lugar de aprender el patron pedagogico de comportamiento. Ademas, usamos <code>assignment_end_time</code> para calcular <code>notfinish_percent</code>."
+          </div>
+        </div>
+
+        <!-- 5. sequence_details.csv -->
+        <div class="file-pane" id="raw-sequences">
+          <div class="notice notice-info">
+            <strong>ESTRUCTURA CURRICULAR:</strong> Rutas de carpetas y niveles de aprendizaje.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/sequence_details.csv</code> (Tamano: 3.81 MB • Filas: ~18,000 secuencias)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Ejemplo de Valor Real</th>
+                  <th>Transformacion en X</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>sequence_id</code></td><td>"SEQ_10928"</td><td>Clave de cruce (excluida de X).</td></tr>
+                <tr><td><code>sequence_folder_path_level_1</code></td><td>"Grade 7 Math"</td><td>One-Hot Encoding (pd.get_dummies) a columnas binarias 0/1.</td></tr>
+                <tr><td><code>sequence_folder_path_level_2</code></td><td>"Module 2: Rational Numbers"</td><td>One-Hot Encoding a columnas binarias 0/1.</td></tr>
+                <tr><td><code>sequence_folder_path_level_3</code></td><td>"Topic A: Addition and Subtraction"</td><td>One-Hot Encoding a columnas binarias 0/1.</td></tr>
+                <tr><td><code>sequence_folder_path_level_4</code></td><td>"Lesson 4: Operations"</td><td>One-Hot Encoding a columnas binarias 0/1.</td></tr>
+                <tr><td><code>sequence_folder_path_level_5</code></td><td>"Practice Set 1"</td><td>Descartado por alta cardinalidad residual.</td></tr>
+                <tr><td><code>sequence_name</code></td><td>"Grade 7 Mid-Module Assessment"</td><td>Descartado (texto libre redundant).</td></tr>
+                <tr><td><code>sequence_problem_ids</code></td><td>"PRB_12, PRB_15, PRB_19"</td><td>Lista interna de items del LMS.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que decir a la profesora:</strong>
+            "Las carpetas curriculares representan el nivel escolar y el tema matematico. Como son categoricas nominales, las transformamos con One-Hot Encoding (pd.get_dummies) rellenando nulos con 'na'. Esto genera variables binarias que indican si el alumno esta cursando 6to, 7mo o algebra."
+          </div>
+        </div>
+
+        <!-- 6. problem_details.csv -->
+        <div class="file-pane" id="raw-problems">
+          <div class="notice notice-info">
+            <strong>HABILIDADES CCSS & SEMANTICA BERT:</strong> Características pedagogicas del problema evaluado.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/problem_details.csv</code> (Tamano: 58.98 MB • Filas: ~75,000 problemas)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Tipo</th>
+                  <th>Transformacion hacia X</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>problem_id</code></td><td>string</td><td>Clave relacional (excluida de X).</td></tr>
+                <tr><td><code>problem_type</code></td><td>string ("radio_button", "open_response")</td><td>One-Hot Encoding.</td></tr>
+                <tr><td><code>problem_multipart_id</code></td><td>string</td><td>Se extrae <code>multipart_id_frequency</code> (frecuencia de multipartes).</td></tr>
+                <tr><td><code>problem_multipart_position</code></td><td>int (1, 2, 3)</td><td>One-Hot Encoding de la posicion en items compuestos.</td></tr>
+                <tr><td><code>problem_skill_code</code></td><td>string ("7.NS.A.1", "HSA.REI.B.4")</td><td>Se divide por puntos en 4 subniveles: <code>skill_code1</code> a <code>skill_code4</code> y se codifica One-Hot.</td></tr>
+                <tr><td><code>problem_skill_description</code></td><td>string ("Add and subtract integers")</td><td>One-Hot Encoding de descripciones normalizadas.</td></tr>
+                <tr><td><code>problem_text_bert_pca</code></td><td>vector de texto (32 floats)</td><td><strong>32 Variables continuas:</strong> Se parsean con regex a componentes <code>problem_text_bert_pca_0</code> a <code>_31</code>.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>Que decir a la profesora:</strong>
+            "En <code>problem_details.csv</code> estan las habilidades Common Core (CCSS). Descompusimos el codigo de habilidad en 4 niveles jerarquicos (dominio, cluster y estandar). Ademas, los organizadores ya extrajeron embeddings de texto mediante BERT reducidos a 32 dimensiones con PCA; las parseamos como variables flotantes de tipo float32 que capturan la complejidad semantica del enunciado."
+          </div>
+        </div>
+
+        <!-- 7. action_logs.csv -->
+        <div class="file-pane" id="raw-actions">
+          <div class="notice notice-warning">
+            <strong>TELEMETRIA MASIVA (1.43 GB):</strong> Mas de 30 millones de clicks y eventos de tutoria.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/files/action_logs.csv</code> (Tamano: 1.43 GB • Filas: &gt; 30,000,000)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Columna</th>
+                  <th>Valores Clave</th>
+                  <th>Como se procesa en el Codigo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>assignment_log_id</code></td><td>ID de la practica previa</td><td>Se filtra para incluir solo tareas asociadas a los 3,000 alumnos seleccionados.</td></tr>
+                <tr><td><code>timestamp</code></td><td>Unix timestamp (segundos)</td><td>Marca de tiempo de cada interaccion.</td></tr>
+                <tr><td><code>problem_id</code></td><td>ID del item de practica</td><td>Identificador del problema en practica.</td></tr>
+                <tr><td><code>action</code></td><td>'hint_requested', 'answer_requested', 'correct_response', 'wrong_response'</td><td><strong>Agregacion por conteo:</strong> En Celda 4 del notebook se computa el total de veces que el alumno ejecuto cada accion.</td></tr>
+                <tr><td><code>available_core_tutoring</code></td><td>'hint', 'explanation', 'no_tutoring'</td><td>Conteo de tutoria disponible durante el evento.</td></tr>
+                <tr><td><code>max_attempts</code></td><td>int</td><td>Moda del numero maximo de intentos permitidos.</td></tr>
+                <tr><td><code>score_viewable</code></td><td>0 o 1</td><td>Flag si el alumno podia ver su calificacion inmediatamente.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="speech-box">
+            <strong>ADVERTENCIA DOCENTE PARA RESPONDER EN VIVO:</strong>
+            "Profesora, <code>action_logs.csv</code> pesa 1.43 GB y contiene mas de 30 millones de filas. Excel NO lo puede abrir completo porque el limite maximo de una hoja de calculo de Microsoft Excel es exactamente 1,048,576 filas. Por esa razon en el cuaderno de preparacion (Celda 4 y Celda 6) usamos <code>pd.read_csv(..., chunksize=300000)</code> para procesarlo por bloques de 300,000 filas en Python, sumando los conteos de acciones sin desbordar la memoria RAM."
+          </div>
+        </div>
+
+        <!-- 8. unit_test_scores.csv -->
+        <div class="file-pane" id="raw-unit-all">
+          <div class="notice notice-info">
+            <strong>BASE CONSOLIDADA DE EVALUACIONES:</strong> Registro global de todas las pruebas del certamen.
+          </div>
+          <p><strong>Ubicacion:</strong> <code>EDMCup2023_fuente_oficial/data/unit_test_scores.csv</code> (Tamano: 12.79 MB • Filas: ~500,000)</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>Columna</th><th>Tipo</th><th>Significado</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>assignment_log_id</code></td><td>string</td><td>Identificador del test sumativo.</td></tr>
+                <tr><td><code>problem_id</code></td><td>string</td><td>Identificador del problema.</td></tr>
+                <tr><td><code>score</code></td><td>int8 (0 o 1)</td><td>Etiqueta objetiva (Ground Truth).</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: DIAGRAMA RELACIONAL                               -->
+    <!-- ======================================================== -->
+    <div class="tab-content" id="tab-relaciones">
+      <div class="card">
+        <h2 class="card-title">
+          <span>Modelo de Datos Relacional de ASSISTments EDM Cup 2023</span>
+          <span class="badge badge-purple">Esquema de Cruces</span>
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+          Asi es como se conectan los 8 archivos crudos entre si en la Fase de Preparacion de Datos (Celda 6 del cuaderno de preparacion):
+        </p>
+
+        <div class="diagram-container">
+<pre style="color: #38bdf8;">
++------------------------------------+
+|  training_unit_test_scores.csv     |
+|  (Examen Final de Entrenamiento)   |
+|  - assignment_log_id (PK)          |
+|  - problem_id (PK)                 |
+|  - score [Y] (0 o 1)               |
++-----------------+------------------+
+                  |
+                  | (unit_test_assignment_log_id)
+                  v
++-----------------+-------------------------------+
+|     assignment_relationships.csv                |
+|     (Tabla Puente Relacional)                   |
+|  - unit_test_assignment_log_id (FK)             |
+|  - in_unit_assignment_log_id (FK)               |
++-----------------+-------------------------------+
+                  |
+                  | (in_unit_assignment_log_id = assignment_log_id)
+                  v
++-----------------+-------------------------------+       +--------------------------------+
+|       assignment_details.csv                    |       |     sequence_details.csv       |
+|  - assignment_log_id (PK)                       | ----> |  - sequence_id (PK)            |
+|  - student_id (Control / Agrupamiento)          | (FK)  |  - folder_path_level_1 (Grado) |
+|  - sequence_id (FK)                             |       |  - folder_path_level_2 a 4     |
+|  - assignment_end_time (-> notfinish_percent)   |       +--------------------------------+
++-----------------+-------------------------------+
+                  |
+                  | (assignment_log_id)
+                  v
++-----------------+-------------------------------+       +--------------------------------+
+|          action_logs.csv (1.43 GB)              |       |      problem_details.csv       |
+|  (30+ millones de clicks en practica formativa) |       |  - problem_id (PK)             |
+|  - action (wrong, hint, answer, correct)        | <---> |  - problem_type                |
+|  - available_core_tutoring                      |       |  - problem_skill_code (CCSS)   |
+|  - max_attempts, score_viewable                 |       |  - problem_text_bert_pca (32D) |
++-------------------------------------------------+       +--------------------------------+
+</pre>
+        </div>
+
+        <div class="speech-box">
+          <strong>Como explicarle el cruce relacional a la docente:</strong>
+          "Profesora: El examen sumativo no tiene telemetria previa dentro de su propia tabla. Por eso usamos <code>assignment_relationships.csv</code> como tabla puente. Esta conecta el <code>unit_test_assignment_log_id</code> con las tareas de practica <code>in_unit_assignment_log_id</code>. De esas tareas formativas leemos <code>action_logs.csv</code> para saber cuantas pistas pidio y cuantos errores cometio el alumno, y cruzamos con <code>sequence_details.csv</code> para saber el grado y con <code>problem_details.csv</code> para obtener la habilidad CCSS y los embeddings BERT."
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: DE DATA CRUDA A 722 VARIABLES X                   -->
+    <!-- ======================================================== -->
+    <div class="tab-content" id="tab-variables722">
+      <div class="card">
+        <h2 class="card-title">
+          <span>Construccion de las 722 Variables Independientes (X)</span>
+          <span class="badge badge-green">Matriz Predictora</span>
+        </h2>
+        
+        <div class="math-formula-box">
+          <strong>Dimension de la Matriz Predictora X en Memoria:</strong>
+          $$X \in \mathbb{R}^{51{,}042 \times 722} \quad \text{con datos de tipo } \texttt{float32} \quad (\approx 147.5 \text{ MB en RAM})$$
+        </div>
+
+        <p style="font-size: 0.9rem; line-height: 1.7; margin-bottom: 14px;">
+          Las 722 columnas predictoras independientes de la matriz $X$ provienen de 4 familias tecnicas procesadas en la <strong>Celda 6 de ASSISTments_01_Preparar_CSV.ipynb</strong>:
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Familia de Variables</th>
+                <th>Cantidad</th>
+                <th>Columnas Representativas</th>
+                <th>Regla de Limpieza / Imputacion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. Telemetria de Acciones y Tutoria</strong></td>
+                <td>19 variables</td>
+                <td><code>action_wrong_response</code>, <code>action_correct_response</code>, <code>action_hint_requested</code>, <code>action_answer_requested</code>, <code>available_core_tutoring_hint</code>, <code>notfinish_percent</code>, <code>max_attempts</code></td>
+                <td><code>dataset[action_cols].fillna(0)</code>: La ausencia de log en el servidor significa cero ocurrencias del evento.</td>
+              </tr>
+              <tr>
+                <td><strong>2. Secuencias Curriculares</strong></td>
+                <td>~150 variables</td>
+                <td><code>sequence_folder_path_level_1_*</code>, <code>level_2_*</code>, <code>level_3_*</code>, <code>level_4_*</code></td>
+                <td>Categoricas reemplazadas con <code>'na'</code> y convertidas con <code>pd.get_dummies</code> a binarias (uint8).</td>
+              </tr>
+              <tr>
+                <td><strong>3. Habilidades CCSS y Problema</strong></td>
+                <td>~521 variables</td>
+                <td><code>problem_type_*</code>, <code>skill_code1_*</code>, <code>skill_code2_*</code>, <code>skill_code3_*</code>, <code>skill_code4_*</code>, <code>multipart_id_frequency</code></td>
+                <td>Division jerarquica del codigo Common Core (ej. 7.NS.A.1) codificada en One-Hot y frecuencia de multipartes.</td>
+              </tr>
+              <tr>
+                <td><strong>4. Semantica del Enunciado (BERT PCA)</strong></td>
+                <td>32 variables</td>
+                <td><code>problem_text_bert_pca_0</code> hasta <code>problem_text_bert_pca_31</code></td>
+                <td>Parseo de vector continuo en float32; nulos imputados con <code>fillna(-1)</code> para aislamiento en arboles.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>ASSISTments_01_Preparar_CSV.ipynb • Celda 6 (Tratamiento e Imputacion Final)</span>
+            <span>CODIGO EXACTO</span>
+          </div>
+          <pre><code># 1. Acciones de alumnos imputadas con 0 (cero eventos reales):
+action_feature_columns = [c for c in dataset.columns if c.startswith('action_') or
+                          c.startswith('available_core_tutoring_')]
+dataset[action_feature_columns] = dataset[action_feature_columns].fillna(0)
+
+# 2. Reemplazo de infinitos y nulos generales con -1 (arboles de decision):
+dataset = dataset.replace([np.inf, -np.inf], np.nan)
+feature_columns = [c for c in dataset.columns if c not in {
+    'unit_test_assignment_log_id', 'problem_id', 'student_id', 'source_split', 'score'
+}]
+dataset[feature_columns] = dataset[feature_columns].apply(pd.to_numeric, errors='coerce')
+dataset[feature_columns] = dataset[feature_columns].fillna(-1).astype('float32')
+
+print(f'Total de variables predictoras en X: {len(feature_columns)}') # Exactamente 722</code></pre>
+        </div>
+
+        <div class="speech-box">
+          <strong>Que responder si la profesora pregunta por la normalizacion en Random Forest:</strong>
+          "Profesora: En Random Forest no se aplica normalizacion a escala [0, 1] ni estandarizacion a media 0 y desviacion 1 con StandardScaler. Matematicamente, los arboles de decision son invariantes a transformaciones monotonas porque sus cortes maximizan la ganancia de impureza de Gini ($I_G$) evaluando umbrales independientes variable por variable ($x_j \le c$). Lo que si hicimos fue una <strong>estandarizacion de formato tecnico</strong>, asegurando que los 722 predictores sean de tipo <code>float32</code> homogeneo."
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: EXCLUSION & ETIQUETA Y                            -->
+    <!-- ======================================================== -->
+    <div class="tab-content" id="tab-exclusion">
+      <div class="card">
+        <h2 class="card-title">
+          <span>La Variable Dependiente (Y) y las 5 Columnas Excluidas</span>
+          <span class="badge badge-red">Control de Fuga</span>
+        </h2>
+
+        <div class="notice notice-warning">
+          <strong>Pregunta Central de la Profesora:</strong> <em>"¿La variable dependiente fue utilizada para la prediccion?"</em>
+          <br/><strong>Respuesta Tecnica:</strong> SÍ fue utilizada para que el algoritmo aprendiera durante el entrenamiento supervisado (<code>rf.fit(X_train, y_train)</code>), pero NUNCA se ingresa al momento de realizar la prediccion o evaluacion (<code>rf.predict(X_test)</code> solo recibe la matriz $X$).
+        </div>
+
+        <h3 style="font-size: 1rem; color: var(--primary); margin: 14px 0 8px 0;">Las 5 Columnas que JAMAS entran en la Matriz X:</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Columna Excluida</th>
+                <th>Tipo</th>
+                <th>Justificacion Tecnica Obligatoria</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>score</code></td>
+                <td>int8 (0 o 1)</td>
+                <td><strong>Variable Dependiente ($Y$).</strong> Si entrara en $X$, el modelo cometeria Data Leakage (fuga de informacion total), prediciendose a si misma con 100% artificial.</td>
+              </tr>
+              <tr>
+                <td><code>student_id</code></td>
+                <td>string</td>
+                <td><strong>Identificador de Alumno.</strong> Si entra en $X$, los arboles memorizarian que ciertos estudiantes aprueban o reprueban, sobreajustando y fallando con alumnos nuevos.</td>
+              </tr>
+              <tr>
+                <td><code>source_split</code></td>
+                <td>string ('train'/'evaluation')</td>
+                <td><strong>Indicador de Particion.</strong> Es la bandera del caso de estudio que divide las 39,935 filas de entrenamiento de las 11,107 de evaluacion.</td>
+              </tr>
+              <tr>
+                <td><code>unit_test_assignment_log_id</code></td>
+                <td>string</td>
+                <td><strong>Clave Primaria Relacional.</strong> Identificador del log de examen, sin valor explicativo pedagogico.</td>
+              </tr>
+              <tr>
+                <td><code>problem_id</code></td>
+                <td>string</td>
+                <td><strong>Clave Foranea de Item.</strong> Se excluye el ID nominal porque sus caracteristicas ya estan representadas por las variables One-Hot y BERT.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="code-box">
+          <div class="code-box-header">
+            <span>ASSISTments_RF_Colab_ES.ipynb • Celda 4 (Exclusion de IDs y Separacion de X e Y)</span>
+            <span>CODIGO EXACTO</span>
+          </div>
+          <pre><code># 5 Columnas excluidas formalmente:
+id_columns = {
+    'score',                        # Dependiente Y
+    'student_id',                   # ID Alumno (evita memorizacion)
+    'source_split',                 # Flag Train/Eval
+    'unit_test_assignment_log_id',  # PK
+    'problem_id'                    # FK
+}
+feature_columns = [col for col in df.columns if col not in id_columns]
+
+# Matriz predictora X (722 columnas float32):
+X = df[feature_columns].apply(pd.to_numeric, errors='coerce').fillna(-1).astype('float32')
+
+# Vector objetivo Y (score en int8):
+y = pd.to_numeric(df['score'], errors='coerce')
+labeled = y.notna() & y.isin([0, 1])
+y = y.loc[labeled].astype('int8')</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: LIBROS EXCEL                                      -->
+    <!-- ======================================================== -->
+    <div class="tab-content" id="tab-excel">
+      <div class="card">
+        <h2 class="card-title">
+          <span>Libros Excel Listos para Demostracion en Vivo (Carpeta basura/)</span>
+          <span class="badge badge-green">Celdas Nativas</span>
+        </h2>
+
+        <p style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px;">
+          Para evitar que los archivos CSV se vean pegados con comas o punto y coma en el Excel de la laptop de la docente, dejamos preparados dos libros de Microsoft Excel con columnas nativas organizadas:
+        </p>
+
+        <div class="notice notice-info">
+          <strong>1. Data_Cruda_Muestra_Columnas_Excel.xlsx (Tamano: 36.8 KB)</strong><br/>
+          Ubicacion: <code>basura/Data_Cruda_Muestra_Columnas_Excel.xlsx</code><br/>
+          Contiene 7 pestanas independientes:
+          <ul style="margin-left: 20px; margin-top: 6px;">
+            <li><code>training_scores</code>: Muestra de <code>assignment_log_id, problem_id, score</code> (etiqueta Y).</li>
+            <li><code>relationships</code>: Muestra de la tabla puente entre test y tareas previas.</li>
+            <li><code>sequence_details</code>: Muestra de rutas curriculares y carpetas.</li>
+            <li><code>problem_details</code>: Muestra de tipos de problema y habilidades CCSS.</li>
+            <li><code>unit_test_scores</code>: Muestra de scores combinados.</li>
+            <li><code>eval_scores</code>: Muestra del conjunto de evaluacion oficial.</li>
+            <li><code>assignments</code>: Muestra de <code>assignment_log_id, student_id, sequence_id</code>.</li>
+          </ul>
+        </div>
+
+        <div class="notice notice-success">
+          <strong>2. Data_Procesada_Muestra_Columnas_Excel.xlsx (Tamano: 15.4 KB)</strong><br/>
+          Ubicacion: <code>basura/Data_Procesada_Muestra_Columnas_Excel.xlsx</code><br/>
+          Muestra de filas completas con las 722 variables predictoras numericas organizadas por columnas nativas de Excel.
+        </div>
+
+        <div class="speech-box">
+          <strong>Que responder si la profesora pide abrir la data en Excel:</strong>
+          "Profesora, si desea ver las tablas directamente en celdas de Excel sin el texto plano delimitado por comas de los CSVs, abrimos el libro <code>basura/Data_Cruda_Muestra_Columnas_Excel.xlsx</code> donde cada una de las 7 tablas de la base oficial tiene su propia pestana con columnas separadas nativamente."
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 6: SIMULADOR PREGUNTAS PROFESORA                     -->
+    <!-- ======================================================== -->
+    <div class="tab-content" id="tab-simulador">
+      <div class="card">
+        <h2 class="card-title">
+          <span>Simulador de Preguntas Orales de la Profesora (Libro Abierto)</span>
+          <span class="badge badge-yellow">Transcripcion Real</span>
+        </h2>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 14px;">
+          Respuestas tecnicas exactas basadas en lo que la docente indico textualmente en clase:
+        </p>
+
+        <!-- Q1 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">1. ¿Cual es la variable dependiente y cuales son las independientes?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa sin dudar:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>Variable dependiente (Y) / respuesta / explicada:</strong> Es <code>score</code>. Representa la prediccion binaria del desempeno del alumno en cada problema de la evaluacion sumativa (1 = acierto en primer intento sin ayuda; 0 = fallo o solicitud de pistas).</li>
+              <li><strong>Variables independientes (X) / predictoras / factores / causas:</strong> Son exactamente <strong>722 variables numericas de tipo float32</strong>, divididas en 4 familias: conteos de telemetria en practica previa (19), dummies de ruta curricular, dummies de habilidad Common Core CCSS, y 32 componentes semanticas de BERT PCA.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">2. ¿Cuales fueron las reglas de etiquetado y quien etiqueto?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>¿Quien etiqueto?:</strong> NO etiquetaron personas ni anotadores humanos. Fue la <strong>telemetria objetiva registrada automaticamente por el servidor LMS de ASSISTments</strong>.</li>
+              <li><strong>Regla de etiquetado (Ground Truth):</strong>
+                <br/>• $\text{score} = 1$: El estudiante introduce la respuesta correcta en su primer intento sin solicitar ninguna pista (hints) ni pedir la solucion al tutor virtual.
+                <br/>• $\text{score} = 0$: El estudiante se equivoca en su primer intento o solicita pistas/respuestas al tutor virtual antes de acertar.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">3. ¿La variable dependiente fue utilizada para la prediccion?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa (La profesora pregunto esto en clase):</strong></p>
+            <p>
+              "Profesora: Al ser un algoritmo de <strong>clasificacion supervisada</strong>, la variable dependiente $Y$ (score) <strong>SÍ se utilizo para que el algoritmo aprendiera</strong> durante la fase de entrenamiento mediante <code>rf.fit(X_train, y_train)</code>. Sin embargo, para realizar la <strong>prediccion o prueba (test)</strong>, NUNCA se ingresa la variable dependiente; unicamente se le pasan al modelo las variables independientes $X$ mediante <code>y_pred = rf.predict(X_test)</code>."
+            </p>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">4. ¿Que hicieron en la limpieza de datos? ¿Eliminaron o reemplazaron?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa:</strong> Se hicieron ambas acciones bajo justificacion tecnica:</p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>Eliminacion:</strong> Se eliminaron registros sin etiqueta valida (nulos con <code>y.notna() & y.isin([0, 1])</code>), y se tomo una muestra aleatoria reproducible de 3,000 estudiantes (semilla 42) para que los 30 millones de logs de clicks pudieran procesarse en la memoria RAM de Colab.</li>
+              <li><strong>Reemplazo (Imputacion):</strong>
+                <br/>1) <em>En acciones de alumnos (action_*):</em> Se reemplazaron nulos con <strong>0</strong> (<code>fillna(0)</code>), porque la ausencia de log significa cero ocurrencias del evento.
+                <br/>2) <em>En categoricas:</em> Se rellenaron con <strong>'na'</strong> antes de One-Hot Encoding.
+                <br/>3) <em>En variables generales numericas e infinitos:</em> Se imputaron con <strong>-1</strong> (<code>fillna(-1)</code>). En arboles de Random Forest, el -1 crea una rama de decision propia para valores ausentes sin distorsionar la distribucion.
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">5. ¿Como dividieron los datos? ¿Cuales son las variables de train y de test?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa:</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>Entrenamiento (X_train):</strong> <strong>39,935 filas</strong> (78.24% de los datos con <code>source_split == 'train'</code>).</li>
+              <li><strong>Evaluacion / Prueba (X_test):</strong> <strong>11,107 filas</strong> (21.76% de los datos con <code>source_split == 'evaluation'</code>).</li>
+              <li><strong>¿Cuales son las variables de train y de test?:</strong> Ambas particiones tienen <strong>EXACTAMENTE LAS MISMAS 722 VARIABLES PREDICTORAS</strong>. Si tuvieran variables distintas, el modelo arrojaria error de dimensiones al predecir.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">6. ¿Cual es la metrica general que evalua el modelo tomando ambas clases?</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa (Pregunta clave de la profesora):</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>F1-Score Macro (0.6828):</strong> Promedio simple no ponderado entre el F1 de la clase 0 (0.6044) y el F1 de la clase 1 (0.7612). Pondera 50/50 ambas clases independientemente del desbalance moderado 60/40.</li>
+              <li><strong>ROC-AUC (0.7528):</strong> Mide la capacidad global de separacion y ordenamiento probabilistico entre ambas clases en todos los umbrales de decision de 0.0 a 1.0, superando ampliamente al clasificador al azar (0.50).</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">7. Expliquen la Matriz de Confusion con los numeros reales</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <div class="math-formula-box">
+              $$N = 11{,}107 \quad | \quad \text{VN} = 2{,}526 \quad | \quad \text{FP} = 2{,}009 \quad | \quad \text{FN} = 1{,}298 \quad | \quad \text{VP} = 5{,}274$$
+              $$\text{Accuracy} = \frac{\text{VN} + \text{VP}}{N} = \frac{2{,}526 + 5{,}274}{11{,}107} = \frac{7{,}800}{11{,}107} = 70.22\%$$
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>Verdaderos Negativos (VN = 2,526):</strong> Alumnos que fallaron y el modelo los detecto oportunamente como fallo (Alerta temprana exitosa).</li>
+              <li><strong>Falsos Positivos (FP = 2,009):</strong> Alumnos que fallaron pero el modelo predijo exito (Riesgo no detectado).</li>
+              <li><strong>Falsos Negativos (FN = 1,298):</strong> Alumnos que aprobaron pero el modelo alerto riesgo (Falsa alarma).</li>
+              <li><strong>Verdaderos Positivos (VP = 5,274):</strong> Alumnos que aprobaron y el modelo confirmo su exito.</li>
+              <li><strong>Recall de la Clase 0 (Sensibilidad de Fallo):</strong> $2{,}526 / 4{,}535 = 55.70\%$. Identifica oportunamente a mas de la mitad de los reprobados antes del examen.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="sim-card">
+          <div class="sim-header" onclick="toggleSimCard(this)">
+            <span class="sim-title">8. ¿Como se convirtio y cargo el modelo para el Despliegue? (Punto Extra)</span>
+            <span class="sim-toggle">+</span>
+          </div>
+          <div class="sim-body">
+            <p><strong>Respuesta directa (Punto extra de la profesora):</strong></p>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+              <li><strong>Conversion / Persistencia:</strong> Se serializa el objeto <code>rf</code> entrenado utilizando <code>joblib.dump(rf, 'modelo_rf_assistments.joblib')</code>.</li>
+              <li><strong>Carga en Despliegue:</strong> En la Celda 11 del cuaderno, se sube un archivo nuevo sin etiqueta (<code>assistments_nuevos_sin_etiqueta_demo.csv</code> que <strong>NO contiene la columna score</strong>).</li>
+              <li><strong>Generacion de Salida:</strong> El modelo cargado ejecuta <code>rf.predict(X_nuevo)</code> y <code>rf.predict_proba(X_nuevo)</code>, exportando un archivo con las predicciones y generando la alerta docente: <em>si $P(\text{score}=0) > 0.40 \rightarrow \text{'EN RIESGO'}$</em>.</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Cambio de pestanas principales
+    function switchMainTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // Cambio de archivo en catalogo de datos crudos
+    function switchRawFile(fileId, btn) {
+      document.querySelectorAll('.file-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.file-btn').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById(fileId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    // Colapsable para tarjetas del simulador
+    function toggleSimCard(header) {
+      const card = header.closest('.sim-card');
+      const body = card.querySelector('.sim-body');
+      const toggle = card.querySelector('.sim-toggle');
+      if (body.style.display === 'block') {
+        body.style.display = 'none';
+        toggle.textContent = '+';
+      } else {
+        body.style.display = 'block';
+        toggle.textContent = '-';
+      }
+    }
+  </script>
+</body>
+</html>
