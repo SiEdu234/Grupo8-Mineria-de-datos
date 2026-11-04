@@ -1,0 +1,35 @@
+GUÍA INTERACTIVA DE DEFENSA · GRUPO 8
+
+DÓNDE ABRIRLA
+En la carpeta basura, abre ABRIR_GUIA_DEFENSA_ORAL_GRUPO8.html. Este acceso abre la aplicación completa que está en DEFENSA_ORAL_INTERACTIVA_2026/index.html.
+
+QUÉ PUEDES HACER
+- Recorrer el caso desde los archivos crudos hasta la predicción.
+- Comparar Random Forest y Extra Trees desde la portada.
+- Cambiar notebook/celda, ver el código fuente completo, buscarlo, copiarlo y seguir explicaciones que resaltan líneas.
+- Mover el umbral de score=0 y ver cómo cambian métricas, matriz de confusión y punto de operación ROC.
+- Cambiar entre train y evaluation, elegir el modelo, ver la curva ROC, la matriz, la distribución de clases y las 15 variables más importantes.
+- Elegir la configuración de hiperparámetros y comparar sus resultados medidos.
+- Practicar preguntas para cinco integrantes.
+
+CÓMO SE CALCULARON LOS RESULTADOS
+Las probabilidades de los tres modelos se generaron ejecutando los algoritmos sobre el CSV del proyecto con los hiperparámetros de los notebooks. El navegador recalcula en JavaScript las métricas, matrices y puntos ROC al cambiar partición, modelo o umbral. A 0,50, las predicciones reproducen model.predict(); cambiar el umbral no reentrena.
+
+NOTEBOOK SIMULADO
+Los .ipynb guardados no tienen outputs de ejecución. Por eso cada botón “Simular ejecución” enseña una salida de referencia transparente. Las diez filas de inferencia mostradas se calcularon con la corrida real y omiten identificadores.
+
+ARCHIVOS DE LA APLICACIÓN
+ABRIR_GUIA_DEFENSA_ORAL_GRUPO8.html: acceso fácil desde basura.
+DEFENSA_ORAL_INTERACTIVA_2026/index.html: página completa.
+DEFENSA_ORAL_INTERACTIVA_2026/css/guia.css: estilos.
+DEFENSA_ORAL_INTERACTIVA_2026/js/contenido.js: guía, preguntas y cifras.
+DEFENSA_ORAL_INTERACTIVA_2026/js/notebooks.js: código extraído de los 17 bloques fuente de los tres notebooks y sus explicaciones.
+DEFENSA_ORAL_INTERACTIVA_2026/js/resultados_modelos.js: resultados/probabilidades de la corrida para gráficos dinámicos.
+DEFENSA_ORAL_INTERACTIVA_2026/js/guia.js: interacciones.
+DEFENSA_ORAL_INTERACTIVA_2026/assets/: gráficos de referencia.
+
+CONSERVA LA ESTRUCTURA
+Mantén la carpeta de la aplicación en basura, junto a Data_Cruda_Muestra_Columnas_Excel.xlsx y Data_Procesada_Muestra_Columnas_Excel.xlsx. Los enlaces al CSV preparado y a los .ipynb originales apuntan a sus ubicaciones actuales en la carpeta principal del proyecto.
+
+La página funciona sin servidor. No vuelve a entrenar ni despliega el modelo. A 0,50 muestra la corrida real; las exploraciones de umbral recalculan predicciones desde probabilidades reales. Verifica las cifras con los notebooks y presenta las respuestas con tus propias palabras.
+

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172b3a">
+  <meta name="description" content="Guía interactiva para preparar la defensa oral del proyecto ASSISTments del Grupo 8.">
+  <title>Defensa oral · ASSISTments · Grupo 8</title>
+  <link rel="stylesheet" href="css/guia.css?v=20261103-2">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" data-go="inicio" aria-label="Ir al inicio de la guía">
+      <span class="brand-mark">G8</span>
+      <span><strong>Defensa oral</strong><small>ASSISTments · Minería de Datos</small></span>
+    </a>
+    <div class="top-actions">
+      <span class="offline-badge"><i></i> guía local</span>
+      <button class="quiet-button" id="printGuide" type="button">Imprimir / guardar PDF</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Navegación principal">
+      <p class="rail-label">Preparación para preguntas</p>
+      <nav id="mainNav">
+        <button class="nav-item active" data-go="inicio"><span class="nav-num">00</span> Portada</button>
+        <button class="nav-item" data-go="ruta"><span class="nav-num">01</span> Ruta guiada</button>
+        <button class="nav-item" data-go="datos"><span class="nav-num">02</span> Datos: crudo → listo</button>
+        <button class="nav-item" data-go="codigo"><span class="nav-num">03</span> Notebook guiado</button>
+        <button class="nav-item" data-go="resultados"><span class="nav-num">04</span> Métricas y gráficos</button>
+        <button class="nav-item" data-go="parametros"><span class="nav-num">05</span> Parámetros</button>
+        <button class="nav-item" data-go="simulacro"><span class="nav-num">06</span> Simulacro oral</button>
+        <button class="nav-item" data-go="calidad"><span class="nav-num">07</span> Calidad y cierre</button>
+      </nav>
+      <div class="rail-progress">
+        <div class="rail-progress-head"><span>Ruta estudiada</span><strong id="routePercent">0%</strong></div>
+        <div class="progress-track"><span id="routeBar"></span></div>
+        <small id="routeCount">0 de 8 temas marcados</small>
+      </div>
+      <div class="rail-note">La docente pregunta a cada integrante. Practiquen explicar con sus palabras y señalar el bloque real del notebook.</div>
+    </aside>
+
+    <main id="mainContent">
+      <section class="view active" data-view="inicio" id="inicio">
+        <div class="eyebrow">GUÍA DE DEFENSA · GRUPO 8</div>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1>Entender el código.<br><em>Defender cada decisión.</em></h1>
+            <p class="lead">Repaso guiado del caso ASSISTments, los notebooks, los datos y la comparación de modelos. Preparada para preguntas individuales de la profesora.</p>
+            <div class="hero-actions">
+              <button class="button primary" data-go="ruta">Empezar la ruta <span aria-hidden="true">→</span></button>
+              <button class="button secondary" data-go="simulacro">Sortear una pregunta</button>
+            </div>
+            <div class="hero-warning"><span class="warning-dot"></span><span>La web es una guía de estudio. El modelo corre en los notebooks; aquí no se ejecutan predicciones.</span></div>
+          </div>
+          <div class="hero-stamp" aria-label="Tema de la defensa">
+            <div class="stamp-top">CASO DE ESTUDIO</div>
+            <div class="stamp-main">Predicción<br>de resultados</div>
+            <div class="stamp-bottom">ASSISTments · 2023 data</div>
+            <div class="stamp-line"></div>
+            <div class="stamp-models"><span>RF base</span><span>RF modificado</span><span>Extra Trees</span></div>
+          </div>
+        </div>
+        <section class="algorithm-primer" aria-labelledby="algorithmPrimerTitle">
+          <div class="algorithm-primer-heading"><div><div class="panel-kicker">ANTES DE VER LOS RESULTADOS</div><h2 id="algorithmPrimerTitle">RF y Extra Trees: mismo objetivo, distinta aleatoriedad</h2><p>La comparación usa los mismos datos y particiones; cambia cómo se construyen los árboles.</p></div><div class="algorithm-toggle" role="tablist" aria-label="Comparar algoritmos"><button class="active" data-algorithm="rf" type="button">Random Forest</button><button data-algorithm="et" type="button">Extra Trees</button></div></div>
+          <div class="algorithm-primer-body"><div id="algorithmDiagram" class="algorithm-diagram"></div><div id="algorithmPrimerText" class="algorithm-primer-text"></div></div>
+          <div class="shared-model-note"><b>En esta réplica:</b> ambos usan 600 árboles, max_depth=19, min_samples_split=10, min_samples_leaf=2, max_features=sqrt, bootstrap=True y random_state=42. El segundo RF cambia profundidad a 12, split a 20 y leaf a 5.</div>
+        </section>
+        <div class="stat-strip" id="statGrid"></div>
+        <div class="home-columns">
+          <div class="surface-panel checklist-panel">
+            <div class="panel-kicker">LO QUE PIDE LA PROFESORA</div>
+            <h2>La respuesta debe volver al código</h2>
+            <div class="requirement-list" id="requirementList"></div>
+          </div>
+          <div class="surface-panel oral-panel">
+            <div class="panel-kicker">ENSAYO RÁPIDO</div>
+            <h2>Una pregunta al azar</h2>
+            <p>Practica una pregunta técnica y comprueba si puedes explicar el porqué, no solo nombrar el parámetro.</p>
+            <button class="text-link" id="quickQuestion">Elegir pregunta y asignar turno <span aria-hidden="true">↗</span></button>
+            <div class="quick-stat"><b id="knownCount">0</b><span>preguntas marcadas como repasadas</span></div>
+          </div>
+        </div>
+        <div class="bottom-callout"><strong>Primera idea para abrir:</strong><span>“Predecimos el resultado de cada problema final con variables de las prácticas previas; comparamos tres modelos sobre los mismos datos.”</span></div>
+      </section>
+
+      <section class="view" data-view="ruta" id="ruta" hidden>
+        <div class="page-heading"><div><div class="eyebrow">01 / EXPLICACIÓN EN ORDEN</div><h1>Ruta guiada de defensa</h1><p class="lead">Sigue el hilo del problema hasta la propuesta. Cada paso incluye qué decir, qué mostrar y dónde encontrarlo.</p></div><div class="heading-mark">08 <small>pasos</small></div></div>
+        <div class="guided-layout">
+          <nav class="step-list" id="stepList" aria-label="Pasos de la exposición"></nav>
+          <article class="step-stage" id="stepStage" aria-live="polite"></article>
+        </div>
+        <div class="step-controls"><button class="button secondary" id="prevStep">← Anterior</button><div class="step-meter"><span id="stepNumber">Paso 1 de 8</span><div class="progress-track"><span id="stepBar"></span></div></div><button class="button primary" id="nextStep">Siguiente →</button></div>
+      </section>
+
+      <section class="view" data-view="datos" id="datos" hidden>
+        <div class="page-heading"><div><div class="eyebrow">02 / INSPECCIÓN EN VIVO</div><h1>De archivos crudos a una fila modelable</h1><p class="lead">Si la profesora pide abrir un CSV, explica primero qué representa y luego qué cambió al prepararlo.</p></div><div class="heading-mark">CSV <small>× 2</small></div></div>
+        <div class="data-switch" role="tablist" aria-label="Elegir vista de datos">
+          <button class="data-tab active" role="tab" aria-selected="true" data-data-tab="raw">Archivos crudos</button>
+          <button class="data-tab" role="tab" aria-selected="false" data-data-tab="prepared">CSV preparado</button>
+        </div>
+        <div class="data-panel active" id="rawPanel" role="tabpanel">
+          <div class="data-summary"><div><span class="panel-kicker">ANTES DE TRANSFORMAR</span><h2>Varios archivos, una función por archivo</h2><p>Los datos están distribuidos en archivos con claves que permiten unir resultados finales y actividad previa.</p></div><a class="button secondary small" href="assets/datos/Data_Cruda_Muestra_Columnas_Excel.xlsx">Abrir muestra cruda en Excel ↗</a></div>
+          <div class="raw-table-wrap"><table class="data-table"><thead><tr><th>Archivo</th><th>Qué aporta</th><th>Qué enseñar</th></tr></thead><tbody id="rawFiles"></tbody></table></div>
+          <div class="sample-row"><div class="sample-label">Ejemplo de puntaje crudo</div><div class="code-mini"><span>assignment_log_id</span><span>problem_id</span><span>score</span><b>1CEASUAUQJ</b><b>18J6436AS5</b><b>1</b></div><p>En evaluation puede venir score vacío; el notebook intenta completar la etiqueta con unit_test_scores.csv cuando está disponible.</p></div>
+        </div>
+        <div class="data-panel" id="preparedPanel" role="tabpanel" hidden>
+          <div class="data-summary"><div><span class="panel-kicker">DESPUÉS DE PREPARAR</span><h2>Una tabla de 727 columnas</h2><p>La primera fila conserva etiqueta y rastreo; los predictores agregan práctica, tutoría, secuencia, problema y vector de texto ya disponible.</p></div><a class="button secondary small" href="assets/datos/Data_Procesada_Muestra_Columnas_Excel.xlsx">Abrir muestra procesada en Excel ↗</a></div>
+          <div class="prepared-facts"><div><strong>51 042</strong><span>filas</span></div><div><strong>3 000</strong><span>estudiantes</span></div><div><strong>727</strong><span>columnas totales</span></div><div><strong>722</strong><span>predictores</span></div></div>
+          <div class="processed-columns"><div class="panel-kicker">CABECERAS PARA SEÑALAR</div><div id="processedColumns" class="chips"></div></div>
+          <div class="file-link-line"><a href="https://github.com/DSAatUSU/EDMCup2023">Consultar los datos oficiales del caso ↗</a><span>Si no carga en el navegador, descárgalo y ábrelo con pandas o Excel.</span></div>
+        </div>
+        <div class="answer-note"><b>Respuesta corta:</b> los archivos crudos registran partes del proceso; el CSV preparado deja una fila por problema final y las variables numéricas que consume el modelo.</div>
+      </section>
+
+      <section class="view" data-view="codigo" id="codigo" hidden>
+        <div class="page-heading"><div><div class="eyebrow">03 / CUADERNO INTERACTIVO</div><h1>El código, celda por celda</h1><p class="lead">Selecciona el notebook, recorre sus celdas reales y abre cada paso de la explicación. La guía simula la salida para estudiar; el Python se ejecuta en Colab.</p></div><div class="heading-mark">.ipynb <small>3 cuadernos</small></div></div>
+        <div class="notebook-topline"><nav id="notebookTabs" class="notebook-tabs" aria-label="Elegir notebook"></nav><div class="notebook-utility"><span><b id="notebookProgress">0</b> celdas repasadas</span><a id="openNotebook" class="text-link" download>Abrir .ipynb original ↗</a></div></div>
+        <div class="notebook-intro"><div><div class="panel-kicker" id="notebookFileLabel"></div><h2 id="notebookTitle"></h2><p id="notebookPurpose"></p></div><div class="simulation-label"><i></i>Modo de estudio · salida simulada</div></div>
+        <div class="notebook-workspace">
+          <nav class="notebook-cell-rail" aria-label="Celdas del notebook"><div class="cell-rail-heading"><span>CONTENIDO DEL CUADERNO</span><small id="cellCount"></small></div><div id="notebookCellList"></div></nav>
+          <article class="notebook-cell-view">
+            <div class="notebook-cell-heading"><div><span class="cell-in-prompt" id="simCellNumber">In [ ]</span><h2 id="simCellTitle"></h2></div><button class="mark-cell" id="markNotebookCell" type="button">Marcar repasada ✓</button></div>
+            <p id="simCellExplanation" class="cell-purpose"></p>
+            <div class="cell-code-head"><span>ENTRADA PYTHON · CÓDIGO DEL NOTEBOOK</span><div class="cell-tools"><label class="cell-search">Buscar<input id="cellSearch" type="search" placeholder="texto dentro de esta celda" aria-label="Buscar en el código"></label><button class="copy-button" id="copyNotebookCell" type="button">Copiar celda</button><button class="button primary run-cell" id="simulateCell" type="button">▶ Simular ejecución</button></div></div>
+            <div class="notebook-code-scroll" id="notebookCode" aria-label="Código fuente completo de la celda"></div>
+            <div class="cell-coach-layout">
+              <section class="cell-coach"><div class="panel-kicker">EXPLICACIÓN GUIADA</div><h3 id="selectedStepTitle"></h3><p id="selectedStepText"></p><div class="coach-step-controls"><button id="prevExplain" type="button">← Paso anterior</button><span id="explainStepCount"></span><button id="nextExplain" type="button">Siguiente paso →</button></div></section>
+              <nav class="cell-step-list" id="explanationSteps" aria-label="Pasos de explicación de la celda"></nav>
+            </div>
+            <section class="simulated-output" id="simOutput" hidden><div class="output-head"><span><i></i> SALIDA DE REFERENCIA</span><button id="closeOutput" type="button" aria-label="Cerrar salida">Ocultar</button></div><p class="output-caveat">Esta guía no ejecuta Python. Las métricas dinámicas se calcularon al entrenar los modelos con el CSV del proyecto; los notebooks guardados no contienen outputs de ejecución.</p><div id="simOutputContent"></div></section>
+            <div class="notebook-cell-footer"><button class="button secondary" id="prevNotebookCell" type="button">← Celda anterior</button><span id="cellPosition"></span><button class="button primary" id="nextNotebookCell" type="button">Siguiente celda →</button></div>
+          </article>
+        </div>
+        <div class="notebook-map">
+          <div><b>Preparación</b><span>Integra fuentes, agrega interacciones y exporta el dataset.</span></div>
+          <div><b>Random Forest de la práctica</b><span>Carga datos, construye X/y, entrena, evalúa e infiere.</span></div>
+          <div><b>Comparación</b><span>Compara RF base, RF modificado y Extra Trees.</span></div>
+        </div>
+      </section>
+
+      <section class="view" data-view="resultados" id="resultados" hidden>
+        <div class="page-heading"><div><div class="eyebrow">04 / RESULTADOS QUE RESPONDEN A TUS CAMBIOS</div><h1>Mueve el umbral; observa qué cambia</h1><p class="lead">Los gráficos se calculan con las probabilidades de los tres modelos ajustados sobre el CSV real. Cambia modelo, partición o umbral para seguir el efecto en vivo.</p></div><div class="heading-mark">p(0) <small>umbral</small></div></div>
+        <div class="live-model-intro"><b>Cómo se decide una alerta:</b><span>si la probabilidad estimada de resultado no exitoso (score=0) alcanza el umbral, se predice clase 0. Un umbral más bajo suele encontrar más no éxitos y puede elevar las falsas alertas.</span></div>
+        <div class="live-controls">
+          <div class="split-controls" role="tablist" aria-label="Partición de métricas"><button class="split-tab active" data-split="train" aria-selected="true">Entrenamiento <small>39 935 filas</small></button><button class="split-tab" data-split="evaluation" aria-selected="false">Evaluation / prueba <small>11 107 filas</small></button></div>
+          <label class="threshold-picker"><span>Umbral para predecir score=0 <b id="thresholdValue">0,50</b></span><input id="thresholdRange" type="range" min="0.05" max="0.95" step="0.01" value="0.50"><span class="threshold-ends"><small>0,05 · más alertas</small><small>0,95 · menos alertas</small></span></label>
+          <button id="resetThreshold" type="button" class="button secondary">Restablecer 0,50</button>
+        </div>
+        <div class="result-reading"><b id="splitTakeaway"></b><span id="splitDescription"></span></div>
+        <div class="surface-panel class-distribution-panel"><div class="panel-kicker">GRÁFICA DE ENTRADA DEL NOTEBOOK</div><h2>¿Cuántos casos hay de cada clase?</h2><div id="classDistribution" class="class-distribution"></div><p id="classDistributionNote" class="chart-caption"></p></div>
+        <div class="selected-model-control"><label for="focusModel">Modelo para explicar</label><select id="focusModel"><option value="rf_practica">RF práctica</option><option value="rf_modificado">RF parámetros modificados</option><option value="extra_trees">Extra Trees</option></select><span id="modelExplanation"></span></div>
+        <div class="metric-cards" id="metricCards"></div>
+        <div class="threshold-insight" id="thresholdInsight" aria-live="polite"></div>
+        <div class="table-scroll"><table class="metric-table"><thead><tr><th>Modelo</th><th>Accuracy</th><th>P0</th><th>R0</th><th>F1 0</th><th>P1</th><th>R1</th><th>F1 1</th><th>P macro</th><th>R macro</th><th>F1 macro</th><th>AUC 0</th></tr></thead><tbody id="metricRows"></tbody></table></div>
+        <p class="table-legend">P: precisión · R: recall · F1: media armónica · 0: no éxito · 1: éxito · AUC 0: área bajo ROC para score=0. El umbral recalcula predicciones y métricas; AUC no depende de él.</p>
+        <div class="result-grid">
+          <div class="surface-panel chart-panel"><div class="panel-kicker">COMPARACIÓN DINÁMICA</div><div class="chart-head"><h2>Comparar una métrica</h2><select id="metricSelect" aria-label="Métrica para comparar"><option value="accuracy">Accuracy</option><option value="fm">F1 macro</option><option value="r0">Recall score=0</option><option value="auc0">ROC-AUC score=0</option></select></div><div id="barChart" class="bar-chart"></div><p id="metricExplanation" class="chart-caption"></p></div>
+          <div class="surface-panel confusion-panel"><div class="panel-kicker">SE ACTUALIZA CON EL UMBRAL</div><h2>Matrices de confusión</h2><div id="confusionGrid" class="confusion-grid"></div><p class="chart-caption">Filas = etiqueta real; columnas = predicción. El punto seleccionado en ROC representa el mismo umbral de estas matrices.</p></div>
+        </div>
+        <div class="surface-panel dynamic-roc-panel"><div class="dynamic-chart-heading"><div><div class="panel-kicker">CURVAS ROC CALCULADAS CON LAS PROBABILIDADES REALES</div><h2>Elige un modelo y sigue el punto de operación</h2><p>Las curvas describen todos los umbrales posibles; el punto resaltado corresponde al valor actual del control.</p></div><span id="rocSplitLabel" class="roc-split-label"></span></div><div class="dynamic-roc-layout"><div class="dynamic-svg-wrap"><svg id="dynamicRoc" viewBox="0 0 720 430" role="img" aria-label="Curvas ROC de los tres modelos"></svg><div id="dynamicRocLegend" class="dynamic-roc-legend"></div></div><aside class="roc-coach"><h3>Cómo leer esta gráfica</h3><p><b>Eje horizontal:</b> falsos positivos. <b>Eje vertical:</b> verdaderos positivos para score=0.</p><p><b>Diagonal punteada:</b> clasificación aleatoria. Una curva más pegada a la esquina superior izquierda separa mejor las clases.</p><p id="rocCoachLive"></p><p><b>AUC:</b> resume la curva completa; no es accuracy y no cambia al mover el umbral.</p></aside></div></div>
+        <figure class="source-roc-figure"><img src="assets/curvas_roc_train_prueba.png" alt="Gráfica ROC original del notebook comparativo: panel de entrenamiento y panel de evaluación"><figcaption><b>Gráfica del notebook comparativo.</b> Contrasta sus dos paneles con la curva dinámica de arriba. RF práctica: AUC 0,9165 en train y 0,7528 en evaluation; las curvas dinámicas se dibujan desde las probabilidades generadas en esta ejecución.</figcaption></figure>
+        <div class="surface-panel importance-panel"><div class="dynamic-chart-heading"><div><div class="panel-kicker">GRÁFICA DEL NOTEBOOK DE RANDOM FOREST</div><h2>Importancia de variables</h2><p>Ordena las 15 variables con mayor importancia del modelo seleccionado. Es una medida del uso en los árboles; no prueba causalidad.</p></div><label>Modelo<select id="importanceModel"><option value="rf_practica">RF práctica</option><option value="rf_modificado">RF parámetros modificados</option><option value="extra_trees">Extra Trees</option></select></label></div><div id="importanceChart" class="importance-chart"></div></div>
+        <div class="limit-banner"><strong>Alcance de la prueba:</strong> evaluation separa registros, pero 31 estudiantes aparecen en ambas particiones y representan 552 registros de evaluation. Cambiar el umbral no corrige ese solapamiento ni demuestra desempeño en estudiantes completamente nuevos.</div>
+      </section>
+
+      <section class="view" data-view="parametros" id="parametros" hidden>
+        <div class="page-heading"><div><div class="eyebrow">05 / “¿QUÉ PASA SI CAMBIO…?”</div><h1>Laboratorio conceptual de parámetros</h1><p class="lead">Ajusta un valor y practica explicar su efecto esperado. Esta pantalla no vuelve a entrenar el modelo ni inventa nuevas métricas.</p></div><div class="heading-mark">RF <small>+ ET</small></div></div>
+        <div class="preset-switch"><label for="modelPreset">Configuración de referencia</label><select id="modelPreset"><option value="base">RF de la práctica</option><option value="variant">RF modificado</option><option value="extra">Extra Trees · mismos valores base</option></select><p id="presetNote"></p></div>
+        <div class="parameter-board" id="parameterBoard"></div>
+        <div class="parameter-outcome" id="parameterOutcome"></div>
+        <div class="parameter-footer"><b>Idea para contestar:</b> describe qué controla y qué tendencia esperas. Los controles de arriba explican el efecto esperado; no vuelven a entrenar. Para ver el efecto medido, elige una configuración y abre sus resultados reales abajo.</div>
+        <button class="button secondary" id="showParameterResults" type="button">Ver resultados medidos de esta configuración ↓</button>
+      </section>
+
+      <section class="view" data-view="simulacro" id="simulacro" hidden>
+        <div class="page-heading"><div><div class="eyebrow">06 / PRÁCTICA INDIVIDUAL</div><h1>Simulacro de preguntas</h1><p class="lead">Selecciona un tema o deja que el sistema sortee una pregunta y un turno. Responde en voz alta antes de mostrar la guía.</p></div><div class="heading-mark">Q <small>& A</small></div></div>
+        <div class="quiz-toolbar"><label>Tema<select id="questionFilter"></select></label><label>Buscar<input id="questionSearch" type="search" placeholder="p. ej., recall, score, BERT"></label><label>Turno<select id="memberNumber"><option value="1">Integrante 1</option><option value="2">Integrante 2</option><option value="3">Integrante 3</option><option value="4">Integrante 4</option><option value="5">Integrante 5</option></select></label><button class="button secondary" id="randomMember">Sortear integrante</button></div>
+        <div class="quiz-card" id="quizCard"><div class="quiz-meta"><span id="questionCategoryLabel"></span><span id="questionCounter"></span></div><h2 id="questionText">Elige un tema y pulsa “Sortear pregunta”.</h2><div class="quiz-actions"><button class="button primary" id="showAnswer" disabled>Ver explicación</button><button class="button secondary" id="drawQuestion">Sortear pregunta</button></div><div class="answer-box" id="answerBox" hidden><div class="panel-kicker">RESPUESTA BASE</div><p id="answerText"></p><details><summary>Posible repregunta</summary><p id="followupText"></p></details><button class="text-link" id="markKnown">La respondí con seguridad ✓</button></div></div>
+        <div class="quiz-footer"><span><b id="quizProgress">0</b> preguntas marcadas como repasadas</span><button class="text-link" id="clearProgress">Reiniciar progreso local</button></div>
+        <div class="answer-note"><b>Consejo:</b> usa la respuesta para estudiar; en la exposición expliquen con sus palabras y conecten cada afirmación con el código o una cifra del notebook.</div>
+      </section>
+
+      <section class="view" data-view="calidad" id="calidad" hidden>
+        <div class="page-heading"><div><div class="eyebrow">07 / CIERRE, CALIDAD Y LÍMITES</div><h1>Qué está implementado y qué se propone</h1><p class="lead">No atribuyan al caso ni a la réplica un servicio de despliegue que no existe. Presenten las fases futuras como propuesta.</p></div><div class="heading-mark">Q <small>checks</small></div></div>
+        <div class="phase-list" id="phaseList"></div>
+        <div class="closing-grid">
+          <div class="surface-panel"><div class="panel-kicker">DOS CONCLUSIONES QUE SE PUEDEN DEFENDER</div><h2>Con números y límites</h2><ol class="conclusion-list"><li id="dynamicConclusionModel">Con el umbral seleccionado, se actualiza aquí el resultado del modelo elegido.</li><li>La partición evaluation separa registros, pero comparte 31 estudiantes y 552 filas con train. Para afirmar rendimiento en alumnos completamente nuevos, hace falta una evaluación agrupada por student_id.</li></ol></div>
+          <div class="surface-panel"><div class="panel-kicker">ANEXOS QUE PIDE LA PROFESORA</div><h2>Datos, código y estudio</h2><div class="link-list"><a href="https://github.com/DSAatUSU/EDMCup2023">Datos del caso en el repositorio oficial ↗</a><a href="assets/datos/Data_Cruda_Muestra_Columnas_Excel.xlsx">Muestra cruda ↗</a><a href="assets/datos/Data_Procesada_Muestra_Columnas_Excel.xlsx">Muestra procesada ↗</a><a id="paperLink" target="_blank" rel="noopener">Caso de estudio ↗</a><a id="repoLink" target="_blank" rel="noopener">Repositorio de datos ↗</a></div><div id="qualityRefs" class="reference-lines"></div></div>
+        </div>
+        <div class="ai-note"><b>Uso de IA:</b> la guía se organizó con apoyo de IA. El equipo debe contrastar los números con el código y explicar las decisiones con sus propias palabras.</div>
+        <div class="final-oral"><span class="final-number">30s</span><p><b>Cierre en una frase:</b> “La réplica compara tres modelos sobre la misma muestra; el RF de la práctica lideró varias métricas de prueba, pero aún omite no éxitos y la partición comparte estudiantes. El siguiente paso es validar por estudiante y proponer controles de despliegue y monitoreo.”</p><button class="button primary" data-go="simulacro">Practicar otra pregunta →</button></div>
+      </section>
+
+      <footer class="page-footer"><span>Grupo 8 · Minería de Datos</span><span>Guía offline · abre index.html en Chrome</span></footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="js/contenido.js?v=20261103-2"></script>
+  <script src="js/notebooks.js?v=20261103-2"></script>
+  <script src="js/resultados_modelos.js?v=20261103-2"></script>
+  <script src="js/guia.js?v=20261103-2"></script>
+</body>
+</html>

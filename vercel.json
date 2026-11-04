@@ -21,6 +21,11 @@
       "permanent": false
     },
     {
+      "source": "/guia-interactiva",
+      "destination": "/basura/DEFENSA_ORAL_INTERACTIVA_2026/index.html",
+      "permanent": false
+    },
+    {
       "source": "/guia",
       "destination": "/basura/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
       "permanent": false
