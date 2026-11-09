@@ -1,34 +1,10 @@
 {
   "redirects": [
-    {
-      "source": "/",
-      "destination": "/basura/DASHBOARD_DEFENSA_ORAL_GRUPO8.html",
-      "permanent": false
-    },
-    {
-      "source": "/DASHBOARD_DEFENSA_ORAL_GRUPO8.html",
-      "destination": "/basura/DASHBOARD_DEFENSA_ORAL_GRUPO8.html",
-      "permanent": false
-    },
-    {
-      "source": "/inspector",
-      "destination": "/basura/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html",
-      "permanent": false
-    },
-    {
-      "source": "/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html",
-      "destination": "/basura/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html",
-      "permanent": false
-    },
-    {
-      "source": "/guia",
-      "destination": "/basura/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
-      "permanent": false
-    },
-    {
-      "source": "/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
-      "destination": "/basura/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html",
-      "permanent": false
-    }
+    { "source": "/", "destination": "/basura/index.html", "permanent": false },
+    { "source": "/guia", "destination": "/basura/index.html", "permanent": false },
+    { "source": "/DASHBOARD_DEFENSA_ORAL_GRUPO8.html", "destination": "/basura/index.html", "permanent": false },
+    { "source": "/GUIA_PREPROCESAMIENTO_MODELADO_GRUPO8.html", "destination": "/basura/index.html", "permanent": false },
+    { "source": "/INSPECTOR_ARCHIVOS_CRUDOS_GRUPO8.html", "destination": "/basura/index.html", "permanent": false },
+    { "source": "/inspector", "destination": "/basura/index.html", "permanent": false }
   ]
 }

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172b3a">
+  <meta name="description" content="Guía interactiva para preparar la defensa oral del proyecto ASSISTments del Grupo 8.">
+  <title>Defensa oral · ASSISTments · Grupo 8</title>
+  <link rel="stylesheet" href="css/guia.css?v=20261109-9">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#inicio" data-go="inicio" aria-label="Ir al inicio de la guía">
+      <span class="brand-mark">G8</span>
+      <span><strong>Defensa oral</strong><small>ASSISTments · Minería de Datos</small></span>
+    </a>
+    <div class="top-actions">
+      <span class="offline-badge"><i></i> guía local</span>
+      <button class="quiet-button" id="printGuide" type="button">Imprimir / guardar PDF</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" aria-label="Navegación principal">
+      <p class="rail-label">Preparación para preguntas</p>
+      <nav id="mainNav">
+        <button class="nav-item active" data-go="inicio"><span class="nav-num">00</span> Portada</button>
+        <button class="nav-item" data-go="ruta"><span class="nav-num">01</span> Ruta guiada</button>
+        <button class="nav-item" data-go="datos"><span class="nav-num">02</span> Datos: crudo → listo</button>
+        <button class="nav-item" data-go="codigo"><span class="nav-num">03</span> Notebook guiado</button>
+        <button class="nav-item" data-go="resultados"><span class="nav-num">04</span> Métricas y gráficos</button>
+        <button class="nav-item" data-go="calidad"><span class="nav-num">05</span> Calidad y cierre</button>
+        <button class="nav-item" data-go="preguntas"><span class="nav-num">06</span> Preguntas de estudio</button>
+      </nav>
+      <div class="rail-progress">
+        <div class="rail-progress-head"><span>Ruta estudiada</span><strong id="routePercent">0%</strong></div>
+        <div class="progress-track"><span id="routeBar"></span></div>
+        <small id="routeCount">0 de 8 temas marcados</small>
+      </div>
+      <div class="rail-note">La docente pregunta a cada integrante. Practiquen explicar con sus palabras y señalar el bloque real del notebook.</div>
+    </aside>
+
+    <main id="mainContent">
+      <section class="view active" data-view="inicio" id="inicio">
+        <div class="eyebrow">GUÍA DE DEFENSA · GRUPO 8</div>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1>Entender el código.<br><em>Defender cada decisión.</em></h1>
+            <p class="lead">Repaso guiado del caso ASSISTments, los notebooks, los datos y la comparación de modelos. Preparada para preguntas individuales de la profesora.</p>
+            <div class="hero-actions">
+              <button class="button primary" data-go="ruta">Empezar la ruta <span aria-hidden="true">→</span></button>
+              <button class="button secondary" data-go="preguntas">Ver preguntas de estudio</button>
+            </div>
+            <div class="hero-warning"><span class="warning-dot"></span><span>La web es una guía de estudio. El modelo corre en los notebooks; aquí no se ejecutan predicciones.</span></div>
+          </div>
+          <div class="hero-stamp" aria-label="Tema de la defensa">
+            <div class="stamp-top">CASO DE ESTUDIO</div>
+            <div class="stamp-main">Predicción<br>de resultados</div>
+            <div class="stamp-bottom">ASSISTments · 2023 data</div>
+            <div class="stamp-line"></div>
+            <div class="stamp-models"><span>RF base</span><span>RF modificado</span><span>Extra Trees</span></div>
+          </div>
+        </div>
+        <section class="algorithm-primer" aria-labelledby="algorithmPrimerTitle">
+          <div class="algorithm-primer-heading"><div><div class="panel-kicker">ANTES DE VER LOS RESULTADOS</div><h2 id="algorithmPrimerTitle">RF y Extra Trees: mismo objetivo, distinta aleatoriedad</h2><p>La comparación usa los mismos datos y particiones; cambia cómo se construyen los árboles.</p></div><div class="algorithm-toggle" role="tablist" aria-label="Comparar algoritmos"><button class="active" data-algorithm="rf" type="button">Random Forest</button><button data-algorithm="et" type="button">Extra Trees</button></div></div>
+          <div class="algorithm-primer-body"><div id="algorithmDiagram" class="algorithm-diagram"></div><div id="algorithmPrimerText" class="algorithm-primer-text"></div></div>
+          <div class="shared-model-note"><b>En esta réplica:</b> ambos usan 600 árboles, max_depth=19, min_samples_split=10, min_samples_leaf=2, max_features=sqrt, bootstrap=True y random_state=42. El segundo RF cambia profundidad a 12, split a 20 y leaf a 5.</div>
+        </section>
+        <div class="stat-strip" id="statGrid"></div>
+        <div class="home-columns">
+          <div class="surface-panel checklist-panel">
+            <div class="panel-kicker">LO QUE PIDE LA PROFESORA</div>
+            <h2>La respuesta debe volver al código</h2>
+            <div class="requirement-list" id="requirementList"></div>
+          </div>
+          <div class="surface-panel oral-panel">
+            <div class="panel-kicker">ENSAYO RÁPIDO</div>
+            <h2>Preguntas para repasar</h2>
+            <p>Repasa preguntas técnicas sobre el caso, los datos, las tres notebooks, las métricas y los gráficos.</p>
+            <button class="text-link" id="quickQuestion">Abrir el banco de preguntas <span aria-hidden="true">↗</span></button>
+            <div class="quick-stat"><b id="knownCount">0</b><span>preguntas marcadas como repasadas</span></div>
+          </div>
+        </div>
+        <div class="bottom-callout"><strong>Primera idea para abrir:</strong><span>“Predecimos el resultado de cada problema final con variables de las prácticas previas; comparamos tres modelos sobre los mismos datos.”</span></div>
+      </section>
+
+      <section class="view" data-view="ruta" id="ruta" hidden>
+        <div class="page-heading"><div><div class="eyebrow">01 / EXPLICACIÓN EN ORDEN</div><h1>Ruta guiada de defensa</h1><p class="lead">Sigue el hilo del problema hasta la propuesta. Cada paso incluye qué decir, qué mostrar y dónde encontrarlo.</p></div><div class="heading-mark">08 <small>pasos</small></div></div>
+        <div class="guided-layout">
+          <nav class="step-list" id="stepList" aria-label="Pasos de la exposición"></nav>
+          <article class="step-stage" id="stepStage" aria-live="polite"></article>
+        </div>
+        <div class="step-controls"><button class="button secondary" id="prevStep">← Anterior</button><div class="step-meter"><span id="stepNumber">Paso 1 de 8</span><div class="progress-track"><span id="stepBar"></span></div></div><button class="button primary" id="nextStep">Siguiente →</button></div>
+      </section>
+
+      <section class="view" data-view="datos" id="datos" hidden>
+        <div class="page-heading"><div><div class="eyebrow">02 / INSPECCIÓN EN VIVO</div><h1>De archivos crudos a una fila modelable</h1><p class="lead">Si la profesora pide abrir un CSV, explica primero qué representa y luego qué cambió al prepararlo.</p></div><div class="heading-mark">CSV <small>× 2</small></div></div>
+        <div class="data-switch" role="tablist" aria-label="Elegir vista de datos">
+          <button class="data-tab active" role="tab" aria-selected="true" data-data-tab="raw">Archivos crudos</button>
+          <button class="data-tab" role="tab" aria-selected="false" data-data-tab="prepared">CSV preparado</button>
+        </div>
+        <div class="data-panel active" id="rawPanel" role="tabpanel">
+          <div class="data-summary"><div><span class="panel-kicker">ANTES DE TRANSFORMAR</span><h2>Varios archivos, una función por archivo</h2><p>Los datos están distribuidos en archivos con claves que permiten unir resultados finales y actividad previa.</p></div><span class="button secondary small" title="Los datos fuente no se publican en este sitio">CSV crudo: disponible en el proyecto local</span></div>
+          <div class="raw-table-wrap"><table class="data-table"><thead><tr><th>Archivo</th><th>Qué aporta</th><th>Qué enseñar</th></tr></thead><tbody id="rawFiles"></tbody></table></div>
+          <div class="sample-row"><div class="sample-label">Cabecera real del archivo de puntajes</div><div class="code-mini"><span>assignment_log_id</span><span>problem_id</span><span>score</span><b>[ID oculto]</b><b>[ID oculto]</b><b>0 o 1</b></div><p>Los identificadores se ocultan en esta vista. En evaluation, el código intenta completar <code>score</code> desde <code>unit_test_scores.csv</code> cuando está disponible.</p></div>
+        </div>
+        <div class="data-panel" id="preparedPanel" role="tabpanel" hidden>
+          <div class="data-summary"><div><span class="panel-kicker">DESPUÉS DE PREPARAR</span><h2>Una tabla de 727 columnas</h2><p>La primera fila conserva etiqueta y rastreo; los predictores agregan práctica, tutoría, secuencia, problema y vector de texto ya disponible.</p></div><span class="button secondary small" title="El archivo preparado no se publica en este sitio">CSV procesado: disponible en el proyecto local</span></div>
+          <div class="prepared-facts"><div><strong>51 042</strong><span>filas</span></div><div><strong>3 000</strong><span>estudiantes</span></div><div><strong>727</strong><span>columnas totales</span></div><div><strong>722</strong><span>predictores</span></div></div>
+          <div class="processed-columns"><div class="panel-kicker">CABECERAS PARA SEÑALAR</div><div id="processedColumns" class="chips"></div></div>
+          <div class="file-link-line"><span>El CSV preparado <code>assistments_rf_dataset.csv.gz</code> se genera localmente al ejecutar el notebook de preparación; no se incluye en el sitio.</span></div>
+        </div>
+        <div class="answer-note"><b>Respuesta corta:</b> los archivos crudos registran partes del proceso; el CSV preparado deja una fila por problema final y las variables numéricas que consume el modelo.</div>
+      </section>
+
+      <section class="view" data-view="codigo" id="codigo" hidden>
+        <div class="page-heading"><div><div class="eyebrow">03 / CUADERNO INTERACTIVO</div><h1>Recorrido guiado del código</h1><p class="lead">Elige un notebook y avanza por sus etapas. Cada etapa muestra qué entra, qué hace el código, qué produce y abre el bloque fuente relacionado.</p></div><div class="heading-mark">.ipynb <small>3 cuadernos</small></div></div>
+        <div class="notebook-topline"><nav id="notebookTabs" class="notebook-tabs" aria-label="Elegir notebook"></nav><div class="notebook-utility"><span><b id="notebookProgress">0</b> celdas repasadas</span><a id="openNotebook" class="text-link" download>Abrir notebook principal ↗</a></div></div>
+        <div class="notebook-intro"><div><div class="panel-kicker" id="notebookFileLabel"></div><h2 id="notebookTitle"></h2><p id="notebookPurpose"></p></div><div class="source-label"><i></i>Código fuente · celdas explicadas</div></div>
+        <div class="notebook-stage-nav" role="region" aria-label="Navegación por etapas"><button class="button secondary" id="prevNotebookStage" type="button">← Anterior</button><div class="stage-nav-center"><label for="notebookStageSelect">ETAPA DEL NOTEBOOK</label><select id="notebookStageSelect" aria-label="Elegir etapa del notebook"></select><span id="notebookStageCounter"></span></div><button class="button primary" id="nextNotebookStage" type="button">Siguiente →</button></div>
+        <section class="notebook-stage-guide" aria-labelledby="notebookStageHeading">
+          <div class="stage-guide-heading"><div><div class="panel-kicker">ETAPA SELECCIONADA</div><h2 id="notebookStageHeading">Entrada → proceso → transformación → modelado → salida</h2><p>Abajo se indica a qué fase pertenece y qué hace el código en esta etapa.</p></div><span class="stage-guide-stamp">ETAPA Y FASE</span></div>
+          <article id="notebookStageDetail" class="notebook-stage-detail" aria-live="polite"></article>
+        </section>
+        <div class="notebook-workspace">
+          <article class="notebook-cell-view">
+            <div class="notebook-cell-heading"><div><span class="cell-in-prompt" id="codeCellNumber">In [ ]</span><h2 id="codeCellTitle"></h2></div><button class="mark-cell" id="markNotebookCell" type="button">Marcar repasada ✓</button></div>
+            <p id="codeCellExplanation" class="cell-purpose"></p>
+            <div class="code-pointer" aria-live="polite"><span class="code-pointer-arrow" aria-hidden="true">↓</span><div><b>ESTA ETAPA SE SEÑALA EN EL CÓDIGO</b><p id="codePointerText"></p></div></div>
+            <div class="cell-code-head"><span>CÓDIGO FUENTE · CELDA DEL NOTEBOOK</span><div class="cell-tools"><label class="cell-search">Buscar<input id="cellSearch" type="search" placeholder="texto dentro de esta celda" aria-label="Buscar en el código"></label><button class="copy-button" id="copyNotebookCell" type="button">Copiar celda</button><span class="source-code-label">Código fuente del notebook principal</span></div></div>
+            <div class="notebook-code-scroll" id="notebookCode" aria-label="Código fuente completo de la celda"></div>
+            <div class="cell-coach-layout">
+              <section class="cell-coach"><div class="panel-kicker">PASO ACTUAL DEL CÓDIGO</div><h3 id="selectedStepTitle"></h3><p id="selectedStepText"></p><div class="coach-step-controls"><button id="prevExplain" type="button">← Subpaso anterior</button><span id="explainStepCount"></span><button id="nextExplain" type="button">Siguiente subpaso →</button></div></section>
+              <div class="cell-substeps"><div class="panel-kicker">SUBPASOS DE ESTA CELDA</div><nav class="cell-step-list" id="explanationSteps" aria-label="Subpasos de explicación de la celda"></nav></div>
+            </div>
+            <div class="code-source-note">Este panel presenta el código del archivo .ipynb y una explicación por pasos. No ejecuta Python ni genera resultados nuevos.</div>
+            <div class="notebook-cell-footer"><span id="cellPosition"></span></div>
+          </article>
+        </div>
+        <div class="notebook-map">
+          <div><b>Preparación</b><span>Integra fuentes, agrega interacciones y exporta el dataset.</span></div>
+          <div><b>Random Forest de la práctica</b><span>Carga datos, construye X/y, entrena, evalúa e infiere.</span></div>
+          <div><b>Comparación</b><span>Compara RF base, RF modificado y Extra Trees.</span></div>
+        </div>
+        <div class="parameter-guide-static" id="parameterGuide"><div class="panel-kicker">DENTRO DEL MODELADO · SIN CAMBIAR LA CORRIDA</div><h2>Qué controla cada ajuste y qué ocurre si sube o baja</h2><p>Estos son efectos esperables en árboles; no son resultados medidos ni controles para reentrenar. La comparación real está en las tablas de métricas.</p><div class="parameter-guide-grid"><article><b>n_estimators · número de árboles</b><p>Si sube, se combinan más árboles: el voto puede estabilizarse, pero aumenta tiempo y memoria. Si baja, el ajuste es más rápido y puede variar más.</p></article><article><b>max_depth · profundidad máxima</b><p>Si sube, cada árbol puede aprender reglas más detalladas y también ajustarse demasiado a train. Si baja, se simplifica y puede dejar patrones sin aprender.</p></article><article><b>min_samples_split · mínimo para dividir</b><p>Si sube, más nodos se quedan sin dividir: baja la complejidad y podría aparecer subajuste. Si baja, se permiten más cortes y reglas más específicas.</p></article><article><b>min_samples_leaf · mínimo por hoja</b><p>Si sube, cada hoja agrupa más registros y las predicciones se suavizan; puede perder casos pequeños. Si baja, se capturan grupos pequeños, con más riesgo de sobreajuste.</p></article><article><b>max_features · variables candidatas por corte</b><p>Con <code>sqrt</code> se consideran aproximadamente la raíz del total de predictores en cada corte. Si se consideran más, los árboles pueden parecerse más y aumenta el trabajo por división; si se consideran menos, aumenta su diversidad.</p></article><article><b>bootstrap · muestreo con reemplazo</b><p>En esta corrida está en <code>True</code>: cada árbol aprende de una muestra con reemplazo. Si se pone <code>False</code>, usa el conjunto de entrenamiento completo por árbol y cambia la diversidad del ensamble.</p></article><article><b>random_state · semilla</b><p><code>42</code> fija las decisiones aleatorias para repetir la corrida. Cambiarla puede cambiar resultados por la aleatoriedad; no hace que el modelo sea mejor por sí sola.</p></article><article><b>n_jobs · núcleos de cálculo</b><p><code>-1</code> permite usar los núcleos disponibles y puede reducir tiempo de ejecución. Cambiarlo afecta el paralelismo, no el diseño de las reglas del árbol.</p></article></div><div class="tree-vocabulary"><div class="panel-kicker">CÓMO LEER UNA REGLA DEL ÁRBOL</div><div class="tree-vocab-grid"><div><b>Nodo</b><span>Punto donde se evalúa una condición sobre una variable.</span></div><div><b>Corte</b><span>La condición que divide los registros. Ejemplo didáctico: <code>action_correct_response ≤ 12.5</code>.</span></div><div><b>Rama</b><span>Camino que sigue cada grupo según cumpla o no la condición.</span></div><div><b>Hoja</b><span>Extremo del árbol que entrega la clase y su probabilidad estimada.</span></div></div><small>El ejemplo de corte es solo para entender la regla; no se afirma que sea un nodo concreto del bosque entrenado.</small></div></div>
+      </section>
+
+      <section class="view" data-view="resultados" id="resultados" hidden>
+        <div class="page-heading"><div><div class="eyebrow">04 / RESULTADOS DEL CÓDIGO</div><h1>Métricas y gráficos que vamos a presentar</h1><p class="lead">La comparación final usa cuatro métricas: accuracy, precisión macro, recall macro y F1 macro. Las dos tablas muestran los valores del notebook: una para entrenamiento y otra para evaluación. Los gráficos explican la distribución, los errores y la curva ROC.</p></div><div class="heading-mark">4 <small>métricas</small></div></div>
+        <div class="results-note"><b>Cómo se obtuvieron:</b> el código ajusta cada modelo con <code>X_train, y_train</code>. En evaluación, predice usando solo <code>X_test</code> y compara las predicciones con <code>y_test</code>, que conserva <code>score</code> real. De esa comparación salen métricas y matrices.</div>
+        <div class="results-tables-grid">
+          <article class="surface-panel"><div class="panel-kicker">TABLA · ENTRENAMIENTO</div><h2>Métricas sobre train</h2><p>Describe el ajuste del modelo sobre los registros que usó para aprender.</p><div class="table-scroll"><table class="metric-table"><thead><tr><th>Algoritmo</th><th>Accuracy</th><th>Precisión*</th><th>Recall*</th><th>F1-score*</th></tr></thead><tbody id="trainMetricRows"></tbody></table></div></article>
+          <article class="surface-panel"><div class="panel-kicker">TABLA · EVALUACIÓN / PRUEBA</div><h2>Métricas sobre evaluation</h2><p>Describe los registros reservados para evaluar el modelo.</p><div class="table-scroll"><table class="metric-table"><thead><tr><th>Algoritmo</th><th>Accuracy</th><th>Precisión*</th><th>Recall*</th><th>F1-score*</th></tr></thead><tbody id="evaluationMetricRows"></tbody></table></div></article>
+        </div>
+        <p class="table-legend"><b>* Promedio macro:</b> calcula la métrica por separado para score=0 y score=1 y luego promedia ambas clases con el mismo peso. No es una prueba de significancia estadística.</p>
+        <div class="results-tables-grid metric-explanation-grid">
+          <article class="surface-panel"><div class="panel-kicker">LECTURA TÉCNICA · 1/4</div><h2>Accuracy</h2><p>De todos los registros, ¿qué proporción clasificó correctamente? En el RF base de evaluation: (2 526 + 5 273) / 11 107 = <b>0,7022</b>. No muestra por sí sola qué clase se equivoca.</p></article>
+          <article class="surface-panel"><div class="panel-kicker">LECTURA TÉCNICA · 2/4</div><h2>Precisión macro*</h2><p>Para cada clase, divide los aciertos predichos de esa clase entre todas sus predicciones; luego promedia ambas clases. RF base: (0,6604 + 0,7241) / 2 = <b>0,6923</b>. Responde qué tan confiables son las etiquetas predichas.</p></article>
+          <article class="surface-panel"><div class="panel-kicker">LECTURA TÉCNICA · 3/4</div><h2>Recall macro*</h2><p>Para cada clase, divide los casos reales correctamente encontrados entre todos los casos reales; luego promedia. RF base: (0,5570 + 0,8023) / 2 = <b>0,6797</b>. El recall específico de score=0 es 0,5570, distinto del macro.</p></article>
+          <article class="surface-panel"><div class="panel-kicker">LECTURA TÉCNICA · 4/4</div><h2>F1-score macro*</h2><p>Calcula F1 para score=0 y score=1 y promedia los dos valores. RF base: (0,6043 + 0,7612) / 2 = <b>0,6828</b>. Resume el equilibrio entre precisión y recall por clase.</p></article>
+        </div>
+        <div class="answer-note"><b>Train vs. evaluation:</b> las métricas de train describen registros usados para ajustar el modelo; evaluation describe registros reservados. RF base pasó de accuracy 0,8347 en train a 0,7022 en evaluation. La diferencia muestra menor rendimiento en registros reservados, pero no identifica por sí sola la causa; además, 31 estudiantes aparecen en ambas particiones.</div>
+        <div class="surface-panel metric-chart-section"><div class="panel-kicker">GRÁFICO COMPARATIVO · VALORES FIJOS DEL NOTEBOOK</div><div class="chart-head"><div><h2>Entrenamiento y evaluación, juntos</h2><p>Elige una de las cuatro métricas de las tablas. Las barras muestran los valores ya calculados en las corridas; no vuelven a entrenar ni simulan otros resultados.</p></div><select id="reportedMetricSelect" aria-label="Elegir métrica de comparación"><option value="accuracy">Accuracy</option><option value="pm">Precisión macro</option><option value="rm">Recall macro</option><option value="fm">F1-score macro</option></select></div><div id="reportedMetricChart" class="reported-metric-chart"></div><div id="reportedMetricExplanation" class="chart-caption"></div><div class="reported-legend"><span><i class="legend-train"></i>Entrenamiento</span><span><i class="legend-eval"></i>Evaluación</span></div></div>
+        <div class="results-tables-grid extra-figures-grid">
+          <article class="surface-panel"><div class="panel-kicker">GRÁFICA DEL NOTEBOOK RF</div><h2>Distribución de <code>score</code></h2><p>Cuenta cuántos registros tienen resultado no exitoso (0) y exitoso (1). Esta figura describe la composición de los datos, no el desempeño del modelo.</p><div id="classDistributionFigure" class="class-distribution-figure"></div><p class="chart-caption">Se muestran las cantidades de train y evaluation que el código conserva de <code>source_split</code>.</p></article>
+          <article class="surface-panel"><div class="panel-kicker">GRÁFICA DEL NOTEBOOK RF</div><h2>Variables con mayor importancia</h2><p>El Random Forest ordena predictores según cuánto contribuyen a sus divisiones. Una importancia alta indica uso en los árboles, no causa ni efecto sobre el aprendizaje.</p><div id="featureImportanceFigure" class="feature-importance-figure"></div><p class="chart-caption">RF de la práctica · principales variables calculadas por el notebook.</p></article>
+        </div>
+        <article class="surface-panel confusion-figure-panel"><div class="panel-kicker">MATRICES DEL NOTEBOOK COMPARATIVO · EVALUATION</div><h2>Tres matrices de confusión</h2><p>Filas = clase real; columnas = clase predicha. La diagonal contiene aciertos y las otras dos celdas contienen errores.</p><div id="reportedConfusionMatrices" class="reported-confusion-grid"></div><div class="matrix-key"><div><b>Real 0 → predicho 0</b><span>Detectó correctamente un resultado no exitoso.</span></div><div><b>Real 0 → predicho 1</b><span>Omitió un resultado no exitoso.</span></div><div><b>Real 1 → predicho 0</b><span>Falsa alerta: el resultado real era exitoso.</span></div><div><b>Real 1 → predicho 1</b><span>Clasificó correctamente un resultado exitoso.</span></div></div><p class="chart-caption"><b>RF práctica:</b> detectó 2 526 de 4 535 registros score=0 y omitió 2 009; además, generó 1 299 falsas alertas.</p></article>
+        <figure class="source-roc-figure"><div class="panel-kicker">CURVAS ROC DEL NOTEBOOK COMPARATIVO</div><h2>Discriminación de la clase score=0</h2><img src="assets/curvas_roc_train_prueba.png" alt="Curvas ROC originales para score igual a cero; panel izquierdo entrenamiento y panel derecho evaluación"><figcaption><b>Eje X:</b> tasa de falsos positivos. <b>Eje Y:</b> tasa de verdaderos positivos para score=0. Cada punto corresponde a un umbral; la diagonal es el azar. Una curva más cercana a la esquina superior izquierda discrimina mejor. <b>AUC:</b> resume la curva completa y no significa porcentaje de exactitud.<br><br>AUC en entrenamiento: RF práctica 0,9165; RF modificado 0,8269; Extra Trees 0,8246. AUC en evaluación: 0,7528; 0,7489; 0,7340, respectivamente.</figcaption></figure>
+        <div class="results-conclusion"><b>Qué decir:</b> en esta partición el RF de la práctica obtuvo los valores más altos de las cuatro métricas de evaluación: accuracy 0,7022, precisión macro 0,6923, recall macro 0,6797 y F1 macro 0,6828. La matriz muestra además que su recall específico de score=0 fue 2 526/4 535 (55,70 %). La evaluación comparte 31 estudiantes con train, así que no prueba rendimiento en estudiantes completamente nuevos.</div>
+      </section>
+
+      <section class="view" data-view="preguntas" id="preguntas" hidden>
+        <div class="page-heading"><div><div class="eyebrow">06 / BANCO DE ESTUDIO</div><h1>Preguntas técnicas y respuestas</h1><p class="lead">Busca por tema, lee la pregunta e intenta responder antes de abrir su explicación. Cada respuesta debe poder señalarse en un notebook, en una tabla o en una figura.</p></div><div class="heading-mark">5 <small>preguntas</small></div></div>
+        <div class="answer-note"><b>Formato indicado por la docente:</b> habrá cinco preguntas individuales en aproximadamente diez minutos. Cada integrante debe poder responder sobre comprensión, preprocesamiento, normalización, modelado, evaluación o despliegue; no hay una parte que le corresponda con anticipación. Si no sabe, es mejor decir “no lo sé” que inventar y perder tiempo. Responda primero en una frase, señale el código o resultado y amplíe solo si le repreguntan.</div>
+        <div class="study-question-controls"><label>Tema<select id="questionFilter" aria-label="Filtrar preguntas por tema"></select></label><label>Buscar<input id="questionSearch" type="search" placeholder="score, X, recall, BERT…"></label><span id="questionCount" class="small"></span></div>
+        <div class="question-list" id="questionList"></div>
+        <div class="answer-note"><b>Recomendación:</b> expliquen con sus propias palabras y nombren el notebook, la celda o la figura que respalda la respuesta. No reciten una definición aislada: conecten qué entra, qué hace el código y qué salida produce.</div>
+      </section>
+
+      <section class="view" data-view="calidad" id="calidad" hidden>
+        <div class="page-heading"><div><div class="eyebrow">07 / CIERRE, CALIDAD Y LÍMITES</div><h1>Qué está implementado y qué se propone</h1><p class="lead">No atribuyan al caso ni a la réplica un servicio de despliegue que no existe. Presenten las fases futuras como propuesta.</p></div><div class="heading-mark">Q <small>checks</small></div></div>
+        <div class="phase-list" id="phaseList"></div>
+        <div class="closing-grid">
+          <div class="surface-panel"><div class="panel-kicker">DOS CONCLUSIONES QUE SE PUEDEN DEFENDER</div><h2>Con números y límites</h2><ol class="conclusion-list"><li>En esta comparación, el RF de la práctica obtuvo los valores más altos de accuracy, precisión macro, recall macro y F1 macro en evaluation. Es la mejor de estas tres corridas sobre esta partición.</li><li>La partición evaluation separa registros, pero comparte 31 estudiantes y 552 filas con train. Para afirmar rendimiento en alumnos completamente nuevos, hace falta una evaluación agrupada por student_id.</li></ol></div>
+          <div class="surface-panel"><div class="panel-kicker">ANEXOS QUE PIDE LA PROFESORA</div><h2>Datos, código y estudio</h2><div class="link-list"><a href="../ASSISTments_01_Preparar_CSV.ipynb">Notebook de preparación ↗</a><a href="../ASSISTments_RF_Colab_ES.ipynb">Notebook Random Forest ↗</a><a href="../ASSISTments_Comparacion_RF_ExtraTrees.ipynb">Notebook comparativo ↗</a><a id="paperLink" target="_blank" rel="noopener">Caso de estudio ↗</a><a id="repoLink" target="_blank" rel="noopener">Repositorio de datos ↗</a></div><div id="qualityRefs" class="reference-lines"></div><p class="muted-note">Los CSV fuente y procesado permanecen en la carpeta local de datos y no se publican en este sitio.</p></div>
+        </div>
+        <div class="ai-note"><b>Uso de IA:</b> la guía se organizó con apoyo de IA. El equipo debe contrastar los números con el código y explicar las decisiones con sus propias palabras.</div>
+        <div class="final-oral"><span class="final-number">30s</span><p><b>Cierre en una frase:</b> “La réplica compara tres modelos sobre la misma muestra; el RF de la práctica lideró varias métricas de prueba, pero aún omite no éxitos y la partición comparte estudiantes. El siguiente paso es validar por estudiante y proponer controles de despliegue y monitoreo.”</p><button class="button primary" data-go="preguntas">Practicar otra pregunta →</button></div>
+      </section>
+
+      <footer class="page-footer"><span>Grupo 8 · Minería de Datos</span><span>Guía offline · abre index.html en Chrome</span></footer>
+    </main>
+  </div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="js/contenido.js?v=20261109-9"></script>
+  <script src="js/notebooks.js?v=20261109-9"></script>
+  <script src="js/etapas_notebooks.js?v=20261109-9"></script>
+  <script src="js/guia.js?v=20261109-9"></script>
+</body>
+</html>
