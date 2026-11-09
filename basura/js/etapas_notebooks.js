@@ -58,7 +58,7 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 2,
       "summary": "Resume eventos de práctica sin dejar un registro por cada clic.",
       "input": "action_logs.csv, filtrado a asignaciones de práctica relacionadas con los estudiantes muestreados.",
-      "process": "Lee en bloques de 300 000 filas; agrupa por evaluación final y problema; cuenta 14 tipos de acción y cuatro categorías de tutoría. Resume intentos y opciones de visibilidad.",
+      "process": "Lee en bloques de 300 000 filas y resume cada problema final: cuenta 14 tipos de acción y cuatro opciones de tutoría. También guarda intentos y opciones de visibilidad.",
       "transformation": "Los conteos se convierten en columnas numéricas; categorías desconocidas se agrupan como other.",
       "modeling": "No entrena.",
       "output": "Features agregadas por problema final para unir con score y student_id.",
@@ -74,7 +74,7 @@ window.NOTEBOOK_STAGES = {
       "transformation": "pd.get_dummies convierte categorías de los cuatro niveles en columnas 0/1; la ruta no determina score.",
       "modeling": "No entrena.",
       "output": "Columnas One-Hot para las categorías de secuencia.",
-      "forms": "Variables categóricas convertidas a formato numérico."
+      "forms": "Cada categoría queda como una columna 0/1: 1 si aparece y 0 si no aparece."
     },
     {
       "title": "7. Transformar atributos del problema y vector textual",
@@ -82,11 +82,11 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 2,
       "summary": "Codifica atributos del problema final y separa el vector textual incluido en la fuente.",
       "input": "problem_details.csv: tipo, posición multipart, código/descrición de habilidad, multipart_id y problem_text_bert_pca.",
-      "process": "Limpia categorías, divide skill_code en hasta cuatro partes y extrae hasta 32 números del vector textual.",
-      "transformation": "One-Hot codifica categorías del problema; el vector BERT-PCA se reutiliza y no se vuelve a calcular.",
+      "process": "Limpia categorías, separa el código de habilidad en hasta cuatro partes y convierte el vector de texto en 32 columnas.",
+      "transformation": "Las categorías pasan a columnas 0/1. Los 32 valores del vector ya vienen en la fuente: el grupo no ejecuta BERT ni PCA.",
       "modeling": "No entrena BERT, PCA ni un clasificador.",
       "output": "Variables numéricas del problema y 32 columnas problem_text_bert_pca_0 a _31.",
-      "forms": "La fuente entrega el vector; el notebook solo lo convierte de texto a columnas numéricas."
+      "forms": "Aporta categorías del problema y 32 números de texto que ya entrega el dataset."
     },
     {
       "title": "8. Tratar valores y guardar la tabla",
@@ -144,8 +144,8 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 2,
       "summary": "Reproduce el modelo de la práctica 1-2 y lo ajusta únicamente con train.",
       "input": "X_train, y_train y parámetros del RF de la práctica.",
-      "process": "RandomForestClassifier usa 600 árboles; fit(X_train, y_train) aprende reglas de decisión y combina los votos de los árboles.",
-      "transformation": "max_depth=19, min_samples_split=10 y min_samples_leaf=2 limitan crecimiento; max_features=sqrt añade diversidad; bootstrap=True usa muestras con reemplazo. random_state=42 fija aleatoriedad y n_jobs=-1 paraleliza.",
+      "process": "RandomForestClassifier construye 600 árboles. Cada árbol aprende reglas con train; después el modelo combina sus predicciones.",
+      "transformation": "max_depth=19 limita las preguntas en cadena. min_samples_split=10 permite dividir un grupo desde 10 registros; min_samples_leaf=2 exige al menos 2 por grupo final. sqrt revisa unas 27 variables de las 722. bootstrap=True toma muestras con reemplazo.",
       "modeling": "Evaluation no interviene en fit.",
       "output": "Objeto rf ajustado y predicciones/probabilidades para medir las particiones.",
       "forms": "La semilla apoya reproducibilidad; no eleva por sí sola el rendimiento."
@@ -156,8 +156,8 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 3,
       "summary": "Compara clases predichas con etiquetas reales y presenta las métricas pedidas por la docente.",
       "input": "pred_train frente a y_train; y_pred frente a y_test.",
-      "process": "Calcula accuracy, precisión macro, recall macro y F1 macro en entrenamiento y evaluación.",
-      "transformation": "Macro calcula la métrica por clase 0 y 1 y promedia con igual peso. La tabla no separa métricas por clase.",
+      "process": "Compara las predicciones con el resultado real y calcula las cuatro métricas en train y prueba.",
+      "transformation": "Accuracy: aciertos de todos los registros. Precisión: qué tan seguido acierta cuando predice una clase. Recall: cuántos casos reales encuentra. F1 combina precisión y recall. El asterisco promedia score=0 y 1 por igual.",
       "modeling": "No vuelve a entrenar. y_test sirve como referencia de evaluación y no como entrada del modelo.",
       "output": "Tabla de cuatro métricas para las dos particiones. RF base en evaluación: 0,7022; 0,6923; 0,6797; 0,6828.",
       "forms": "ROC-AUC se queda como referencia gráfica y no se incorpora a la tabla solicitada."
@@ -168,11 +168,11 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 1,
       "summary": "Cada figura responde una pregunta distinta: distribución, métricas, errores, umbrales e importancia.",
       "input": "score real, predicciones, probabilidades e importancias del RF.",
-      "process": "Dibuja distribución de score; barras de las cuatro métricas; matriz de confusión; curva ROC para score=0; y las 15 importancias principales.",
-      "transformation": "En la matriz las filas son reales y las columnas predichas. La ROC varía el umbral; AUC resume ordenamiento, no exactitud. Importancia no implica causalidad.",
+      "process": "Muestra cuántos 0/1 hay, compara métricas, enseña aciertos y errores, traza la ROC y ordena las 15 variables más usadas.",
+      "transformation": "En la matriz, fila=resultado real y columna=predicción; la diagonal acierta. En la ROC, X=falsas alertas y Y=score=0 encontrados. Importancia no demuestra causa.",
       "modeling": "Las gráficas no cambian el modelo ajustado.",
       "output": "Figuras generadas a partir de la corrida del RF. En evaluation la matriz base es [[2526, 2009], [1299, 5273]].",
-      "forms": "Si la clase 0 es la prioridad, explica que el recall específico de 0 es 2 526/4 535=0,5570."
+      "forms": "Frase: ‘El RF encontró 2 526 de 4 535 no éxitos; dejó 2 009 sin detectar y dio 1 299 falsas alertas’."
     },
     {
       "title": "6. Aplicar el modelo a un CSV nuevo (opcional)",
@@ -234,8 +234,8 @@ window.NOTEBOOK_STAGES = {
       "stepIndex": 3,
       "summary": "Cada estimador aprende con train y se evalúa en train y evaluation con las mismas cuatro métricas.",
       "input": "Los tres estimadores y X_train/y_train; luego X_train y X_test para calcular resultados.",
-      "process": "Llama fit una vez por modelo; predict genera clase. Para cada partición calcula accuracy, precisión macro, recall macro y F1 macro.",
-      "transformation": "average=macro promedia score=0 y score=1 con igual peso. La matriz y ROC se guardan aparte para las figuras.",
+      "process": "Cada modelo aprende con train, predice las clases y compara esas predicciones con el resultado real.",
+      "transformation": "Accuracy cuenta aciertos totales; precisión mide aciertos entre lo predicho; recall mide casos reales encontrados; F1 combina las dos últimas. El asterisco promedia score=0 y 1 por igual.",
       "modeling": "Evaluation no se usa para fit ni para buscar parámetros/umbral.",
       "output": "Dos tablas comparativas y datos necesarios para las figuras.",
       "forms": "La tabla de evaluación es principal para comparar; train describe ajuste a datos vistos."
@@ -256,10 +256,10 @@ window.NOTEBOOK_STAGES = {
       "title": "6. Explicar las curvas ROC",
       "cellIndex": 5,
       "stepIndex": 0,
-      "summary": "La figura compara capacidad de ordenar score=0 al variar el umbral de decisión.",
+      "summary": "La curva muestra qué ocurre con la detección de no éxitos cuando se cambia el umbral.",
       "input": "Probabilidades estimadas de score=0 y clases reales en train/evaluation.",
-      "process": "Calcula tasa de falsos positivos y verdaderos positivos para muchos umbrales y traza una curva por modelo.",
-      "transformation": "La diagonal es azar; curva más cerca de la esquina superior izquierda suele discriminar mejor. AUC no es porcentaje de aciertos.",
+      "process": "Prueba distintos umbrales. Para cada uno calcula cuántos no éxitos detecta y cuántas falsas alertas genera.",
+      "transformation": "Eje X=falsas alertas; eje Y=score=0 encontrados. La diagonal equivale al azar. Una curva más alta y a la izquierda suele separar mejor. AUC no es accuracy.",
       "modeling": "No cambia umbrales del modelo para mejorar evaluation.",
       "output": "curvas_ROC_train_evaluation.png. AUC evaluation: RF 0,7528; RF modificado 0,7489; Extra Trees 0,7340.",
       "forms": "AUC se interpreta en la gráfica, no se añade a las dos tablas macro solicitadas."
@@ -268,13 +268,13 @@ window.NOTEBOOK_STAGES = {
       "title": "7. Leer las matrices de confusión",
       "cellIndex": 6,
       "stepIndex": 0,
-      "summary": "Las matrices muestran conteos concretos de aciertos y errores de cada modelo en evaluation.",
+      "summary": "Cada celda cuenta aciertos o errores de un modelo sobre los registros de prueba.",
       "input": "y_test y las predicciones de los tres modelos.",
       "process": "Dibuja tres matrices con filas reales 0/1 y columnas predichas 0/1.",
-      "transformation": "La diagonal son aciertos; fuera de la diagonal quedan omisiones y falsas alertas.",
+      "transformation": "Arriba-izquierda: no éxitos encontrados. Arriba-derecha: no éxitos omitidos. Abajo-izquierda: falsas alertas. Abajo-derecha: éxitos acertados.",
       "modeling": "No vuelve a entrenar.",
       "output": "RF base [[2526, 2009], [1299, 5273]]; RF modificado [[2382, 2153], [1182, 5390]]; Extra Trees [[2342, 2193], [1295, 5277]].",
-      "forms": "Para score=0, la celda real0/predicho1 cuenta no éxitos que el modelo omitió."
+      "forms": "RF base: encontró 2 526, omitió 2 009 y dio 1 299 falsas alertas. RF modificado: 2 382, 2 153 y 1 182. Extra Trees: 2 342, 2 193 y 1 295, respectivamente."
     },
     {
       "title": "8. Cerrar la comparación y reconocer límites",

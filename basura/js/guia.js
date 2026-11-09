@@ -30,12 +30,12 @@
     ["Fases propuestas","SQA, despliegue y monitoreo sin presentarlos como funciones implementadas."],
     ["Fuentes","Caso original, estudios de calidad y archivos del proyecto."]
   ];
-  $("#statGrid").innerHTML=(D.stats||[]).map(x=>'<div class="stat-card"><strong>'+esc(x.value)+'</strong><span>'+esc(x.label)+'</span><small>'+esc(x.note)+'</small></div>').join("");
+  $("#statGrid").innerHTML=(D.stats||[]).map(x=>'<div class="stat-item"><span class="stat-value">'+esc(x.value)+'</span><span class="stat-label">'+esc(x.label)+'</span><span class="stat-note">'+esc(x.note)+'</span></div>').join("");
   $("#requirementList").innerHTML=requirements.map((x,i)=>'<div class="requirement"><i>'+String(i+1).padStart(2,"0")+'</i><div><strong>'+esc(x[0])+'</strong><span>'+esc(x[1])+'</span></div></div>').join("");
 
   const algorithmDetails={
-    rf:{steps:["Muestra bootstrap de filas","Elige √722 variables candidatas","Busca el mejor corte entre esas opciones","Promedia votos/probabilidades"],text:"Random Forest construye muchos árboles con muestras de entrenamiento remuestreadas. En cada nodo considera un subconjunto aleatorio de predictores y elige el corte que mejor separa las clases entre las opciones evaluadas."},
-    et:{steps:["Muestra bootstrap de filas*","Elige √722 variables candidatas","Prueba cortes aleatorios","Elige entre esos cortes y combina árboles"],text:"Extra Trees añade aleatoriedad al escoger los cortes de división. En esta corrida se configuró bootstrap=True, así que también usa remuestreo de filas. El valor de bootstrap depende de cómo se configuró el clasificador en el notebook."}
+    rf:{steps:["Cada árbol usa una muestra de registros; algunos pueden repetirse","En cada división revisa unas 27 variables candidatas","Elige la condición que mejor separa score=0 y score=1","Combina las predicciones de todos los árboles"],text:"Random Forest crea muchos árboles. Cada uno aprende de una muestra distinta; en cada paso revisa un grupo de variables y elige la condición que mejor separa los resultados. Al final, combina las respuestas de los árboles."},
+    et:{steps:["Cada árbol usa una muestra de registros; aquí se activa bootstrap","En cada división revisa unas 27 variables candidatas","Prueba condiciones de corte al azar","Conserva la condición que mejor separa los datos probados"],text:"Extra Trees también crea muchos árboles, pero prueba cortes aleatorios y conserva los que mejor separan los datos. Esa aleatoriedad extra cambia cómo se forman los árboles. En esta corrida se fijó bootstrap=True: cada árbol también aprende de una muestra con reemplazo."}
   };
   function renderAlgorithm(key){const item=algorithmDetails[key]||algorithmDetails.rf;$$("[data-algorithm]").forEach(b=>b.classList.toggle("active",b.dataset.algorithm===key));$("#algorithmDiagram").innerHTML=item.steps.map((x,i)=>'<div class="algorithm-step"><span>0'+(i+1)+'</span><b>'+esc(x)+'</b></div>').join("");$("#algorithmPrimerText").textContent=item.text;}
   $(".algorithm-toggle").addEventListener("click",e=>{const b=e.target.closest("[data-algorithm]");if(b)renderAlgorithm(b.dataset.algorithm);});
@@ -85,8 +85,8 @@
     applyCodeSearch();
   }
   function selectExplainStep(index){
-    if(!activeCell)return;activeStep=Math.max(0,Math.min(index,activeCell.steps.length-1));const item=activeCell.steps[activeStep];
-    $("#selectedStepTitle").textContent=item.title;$("#selectedStepText").textContent=item.text;$("#explainStepCount").textContent="Paso "+(activeStep+1)+" de "+activeCell.steps.length;$("#prevExplain").disabled=activeStep===0;$("#nextExplain").disabled=activeStep===activeCell.steps.length-1;
+    if(!activeCell)return;const steps=activeCell.steps||[];if(!steps.length)return;activeStep=Math.max(0,Math.min(index,steps.length-1));const item=steps[activeStep];
+    const stepLabel="Paso "+(activeStep+1)+" de "+steps.length;$("#selectedStepTitle").textContent=item.title;$("#selectedStepText").textContent=item.text;$("#explainStepCount").textContent=stepLabel;$("#explainTopCount").textContent=stepLabel+" · "+item.title;$("#prevExplain").disabled=$("#prevExplainTop").disabled=activeStep===0;$("#nextExplain").disabled=$("#nextExplainTop").disabled=activeStep===steps.length-1;
     const stage=currentStages()[activeStageIndex];$("#codePointerText").textContent="Fase: "+(stage?stage.phase:"sin clasificar")+" · subpaso: "+item.title+" · líneas "+item.start+"–"+item.end+" resaltadas. La flecha señala la primera línea.";
     $$("[data-explain-step]").forEach(b=>b.classList.toggle("active",Number(b.dataset.explainStep)===activeStep));renderCodeLines(activeCell,item);
     const line=$('#notebookCode [data-line="'+item.start+'"]');if(line)line.scrollIntoView({block:"nearest"});
@@ -112,16 +112,17 @@
   $("#prevNotebookStage").addEventListener("click",()=>goToNotebookStage(activeStageIndex-1));$("#nextNotebookStage").addEventListener("click",()=>goToNotebookStage(activeStageIndex+1));
   $("#explanationSteps").addEventListener("click",e=>{const b=e.target.closest("[data-explain-step]");if(b)selectExplainStep(Number(b.dataset.explainStep));});
   $("#prevExplain").addEventListener("click",()=>selectExplainStep(activeStep-1));$("#nextExplain").addEventListener("click",()=>selectExplainStep(activeStep+1));
+  $("#prevExplainTop").addEventListener("click",()=>selectExplainStep(activeStep-1));$("#nextExplainTop").addEventListener("click",()=>selectExplainStep(activeStep+1));
   $("#markNotebookCell").addEventListener("click",()=>{const set=new Set(state.notebookDone||[]);set.add(reviewedKey(activeBook,activeCell));state.notebookDone=[...set];save();renderCell(activeBook.cells.indexOf(activeCell));updateNotebookProgress();toast("Celda agregada al repaso.");});
   $("#cellSearch").addEventListener("input",applyCodeSearch);
   $("#copyNotebookCell").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(activeCell.source);toast("Celda completa copiada.");}catch(_){const ta=document.createElement("textarea");ta.value=activeCell.source;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Celda completa copiada.");}});
   renderBook(state.notebookBook||"prep");
 
   const metricDefs={
-    accuracy:{name:"Accuracy",field:"accuracy",definition:"Proporción global de registros clasificados correctamente. Resume ambas clases, pero no indica por sí sola dónde están los errores."},
-    pm:{name:"Precisión macro",field:"pm",definition:"Calcula la precisión de score=0 y score=1 por separado y promedia ambas; las clases tienen el mismo peso."},
-    rm:{name:"Recall macro",field:"rm",definition:"Calcula el recall de cada clase y promedia ambos. No es el recall exclusivo de score=0."},
-    fm:{name:"F1 macro",field:"fm",definition:"Promedia el F1 de las dos clases; resume el equilibrio entre precisión y recall de cada clase."}
+    accuracy:{name:"Accuracy",field:"accuracy",definition:"Pregunta: de todos los registros, ¿en cuántos acertó? RF base en prueba: 7 799 de 11 107 (70,22 %)."},
+    pm:{name:"Precisión macro",field:"pm",definition:"Pregunta: cuando predijo 0 o 1, ¿cuántas veces acertó? Se promedian ambas clases. RF base: 69,23 %."},
+    rm:{name:"Recall macro",field:"rm",definition:"Pregunta: de los casos que realmente eran 0 o 1, ¿cuántos encontró? Promedio: 67,97 %. Para score=0 encontró 55,70 %."},
+    fm:{name:"F1-score macro",field:"fm",definition:"Combina precisión y recall por clase y luego promedia. RF base: 68,28 %."}
   };
   function metricRows(split){return (D.splits[split]||[]).map(r=>'<tr><td>'+esc(r.model)+'</td><td>'+fmt(r.accuracy)+'</td><td>'+fmt(r.pm)+'</td><td>'+fmt(r.rm)+'</td><td>'+fmt(r.fm)+'</td></tr>').join("");}
   $("#trainMetricRows").innerHTML=metricRows("train");$("#evaluationMetricRows").innerHTML=metricRows("evaluation");
@@ -138,7 +139,7 @@
     ["action_answer_requested",.05544],["action_wrong_response",.03038],["action_correct_response",.02871],["notfinish_percent",.02810],["available_core_tutoring_other",.02785],["action_continue_selected",.02766],["action_problem_finished",.02733],["action_problem_started",.02618],["available_core_tutoring_no_tutoring",.02481],["available_core_tutoring_answer",.02455],["available_core_tutoring_hint",.02386],["action_assignment_finished",.02364],["action_open_response",.02354],["problem_text_bert_pca_1",.02227],["action_assignment_started",.02162]
   ];
   $("#featureImportanceFigure").innerHTML=importance.map(x=>'<div class="importance-static-row"><span title="'+esc(x[0])+'">'+esc(x[0])+'</span><i style="width:'+(x[1]/importance[0][1]*100)+'%"></i><b>'+x[1].toFixed(3)+'</b></div>').join("");
-  $("#reportedConfusionMatrices").innerHTML=(D.confusion||[]).map(m=>{const v=m.values;return '<article class="reported-confusion-card"><h3>'+esc(m.model)+'</h3><div class="reported-matrix"><div class="matrix-corner">Real ↓<br>Pred. →</div><div class="matrix-head">score=0</div><div class="matrix-head">score=1</div><div class="matrix-head">score=0</div><div class="matrix-hit">'+v[0][0].toLocaleString("es-ES")+'</div><div class="matrix-error">'+v[0][1].toLocaleString("es-ES")+'</div><div class="matrix-head">score=1</div><div class="matrix-error">'+v[1][0].toLocaleString("es-ES")+'</div><div class="matrix-hit">'+v[1][1].toLocaleString("es-ES")+'</div></div><p>Omisiones score=0: <b>'+v[0][1].toLocaleString("es-ES")+'</b> · falsas alertas: <b>'+v[1][0].toLocaleString("es-ES")+'</b></p></article>';}).join("");
+  $("#reportedConfusionMatrices").innerHTML=(D.confusion||[]).map(m=>{const v=m.values;return '<article class="reported-confusion-card"><h3>'+esc(m.model)+'</h3><div class="reported-matrix"><div class="matrix-corner">Real ↓<br>Pred. →</div><div class="matrix-head">score=0</div><div class="matrix-head">score=1</div><div class="matrix-head">score=0</div><div class="matrix-hit">'+v[0][0].toLocaleString("es-ES")+'</div><div class="matrix-error">'+v[0][1].toLocaleString("es-ES")+'</div><div class="matrix-head">score=1</div><div class="matrix-error">'+v[1][0].toLocaleString("es-ES")+'</div><div class="matrix-hit">'+v[1][1].toLocaleString("es-ES")+'</div></div><p><b>Lectura:</b> detecta '+v[0][0].toLocaleString("es-ES")+' no éxitos; omite '+v[0][1].toLocaleString("es-ES")+' y genera '+v[1][0].toLocaleString("es-ES")+' falsas alertas. Acierta '+v[1][1].toLocaleString("es-ES")+' éxitos.</p></article>';}).join("");
 
   const questions=D.questions||[],categories=["Todos los temas",...new Set(questions.map(q=>q.category))];
   $("#questionFilter").innerHTML=categories.map((x,i)=>'<option value="'+(i===0?"all":esc(x))+'">'+esc(x)+'</option>').join("");
